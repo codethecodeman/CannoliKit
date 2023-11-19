@@ -1,6 +1,6 @@
 ﻿using Discord.WebSocket;
 
-namespace DisCannoli.Workers.Jobs
+namespace CannoliKit.Workers.Jobs
 {
     internal class DiscordCommandJob
     {

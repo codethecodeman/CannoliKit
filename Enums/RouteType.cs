@@ -1,4 +1,4 @@
-﻿namespace DisCannoli.Enums
+﻿namespace CannoliKit.Enums
 {
     public enum RouteType
     {

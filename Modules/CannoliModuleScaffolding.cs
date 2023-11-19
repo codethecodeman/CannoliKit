@@ -1,14 +1,14 @@
 ﻿using Discord;
 
-namespace DisCannoli.Modules
+namespace CannoliKit.Modules
 {
-    public class DisCannoliModuleScaffolding
+    public class CannoliModuleScaffolding
     {
         public string? Content { get; set; }
         public EmbedBuilder? EmbedBuilder { get; }
         public ComponentBuilder? ComponentBuilder { get; }
 
-        public DisCannoliModuleScaffolding(
+        public CannoliModuleScaffolding(
             string? content = null,
             EmbedBuilder? embedBuilder = null,
             ComponentBuilder? componentBuilder = null)

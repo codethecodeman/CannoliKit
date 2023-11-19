@@ -1,4 +1,4 @@
-﻿namespace DisCannoli.Modules.Pagination
+﻿namespace CannoliKit.Modules.Pagination
 {
     public enum ListType
     {

@@ -1,13 +1,13 @@
-﻿using DisCannoli.Interfaces;
-using DisCannoli.Utilities;
+﻿using CannoliKit.Interfaces;
+using CannoliKit.Utilities;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
-namespace DisCannoli.Workers
+namespace CannoliKit.Workers
 {
-    internal class DisCannoliCleanupWorker<TContext> : DisCannoliWorker<TContext, bool> where TContext : DbContext, IDisCannoliDbContext
+    internal class CannoliCleanupWorker<TContext> : CannoliWorker<TContext, bool> where TContext : DbContext, ICannoliDbContext
     {
-        internal DisCannoliCleanupWorker(int maxConcurrentTaskCount) : base(maxConcurrentTaskCount)
+        internal CannoliCleanupWorker(int maxConcurrentTaskCount) : base(maxConcurrentTaskCount)
         {
         }
 

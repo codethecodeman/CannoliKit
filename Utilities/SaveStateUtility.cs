@@ -1,11 +1,11 @@
-﻿using DisCannoli.Interfaces;
-using DisCannoli.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CannoliKit.Interfaces;
+using CannoliKit.Models;
 
-namespace DisCannoli.Utilities
+namespace CannoliKit.Utilities
 {
     internal static class SaveStateUtility
     {
@@ -14,7 +14,7 @@ namespace DisCannoli.Utilities
             ReferenceHandler = ReferenceHandler.Preserve
         };
 
-        internal static async Task<T?> GetState<T>(IDisCannoliDbContext db, string stateId)
+        internal static async Task<T?> GetState<T>(ICannoliDbContext db, string stateId)
         {
             var savedState = await db.CannoliSaveStates
                 .Where(g => g.Id == stateId)
@@ -35,7 +35,7 @@ namespace DisCannoli.Utilities
             return deserializedEntry;
         }
 
-        internal static async Task AddOrUpdateState(IDisCannoliDbContext db, string stateId, object payload, DateTime? expiresOn = null)
+        internal static async Task AddOrUpdateState(ICannoliDbContext db, string stateId, object payload, DateTime? expiresOn = null)
         {
             var serializedEntry = JsonSerializer.Serialize(
                 payload,
@@ -63,7 +63,7 @@ namespace DisCannoli.Utilities
             entry.UpdatedOn = DateTime.UtcNow;
         }
 
-        internal static async Task RemoveState(IDisCannoliDbContext db, string stateId)
+        internal static async Task RemoveState(ICannoliDbContext db, string stateId)
         {
             var savedState = await db.CannoliSaveStates
                 .Where(g => g.Id == stateId)

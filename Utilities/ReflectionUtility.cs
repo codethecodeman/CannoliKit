@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
 
-namespace DisCannoli.Utilities
+namespace CannoliKit.Utilities
 {
     internal static class ReflectionUtility
     {

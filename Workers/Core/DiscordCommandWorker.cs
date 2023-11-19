@@ -1,12 +1,12 @@
-﻿using DisCannoli.Interfaces;
-using DisCannoli.Workers.Jobs;
+﻿using CannoliKit.Interfaces;
+using CannoliKit.Workers.Jobs;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
-namespace DisCannoli.Workers
+namespace CannoliKit.Workers.Core
 {
-    internal class DiscordCommandWorker<TContext> : DisCannoliWorker<TContext, DiscordCommandJob> where TContext : DbContext, IDisCannoliDbContext
+    internal class DiscordCommandWorker<TContext> : CannoliWorker<TContext, DiscordCommandJob> where TContext : DbContext, ICannoliDbContext
     {
         internal DiscordCommandWorker(int maxConcurrentTaskCount) : base(maxConcurrentTaskCount)
         {
@@ -21,11 +21,11 @@ namespace DisCannoli.Workers
                 GetType().Name,
                 $"Received command {commandName} from {item.SocketCommand.User.Username}"));
 
-            var command = DisCannoliClient.Commands.GetCommand(commandName);
+            var command = CannoliClient.Commands.GetCommand(commandName);
 
             if (command == null) return;
 
-            await command.Respond(db, DisCannoliClient.DiscordClient, item.SocketCommand);
+            await command.Respond(db, CannoliClient.DiscordClient, item.SocketCommand);
         }
     }
 }

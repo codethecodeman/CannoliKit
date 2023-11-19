@@ -1,25 +1,25 @@
-﻿using DisCannoli.Enums;
-using DisCannoli.Interfaces;
-using DisCannoli.Workers.Channels;
+﻿using CannoliKit.Enums;
+using CannoliKit.Interfaces;
+using CannoliKit.Workers.Channels;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 using Timer = System.Timers.Timer;
 
-namespace DisCannoli.Workers
+namespace CannoliKit.Workers
 {
-    public abstract class DisCannoliWorker<TContext, TJob> : DisCannoliWorkerBase, IDisposable where TContext : DbContext, IDisCannoliDbContext
+    public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase, IDisposable where TContext : DbContext, ICannoliDbContext
     {
         protected readonly int MaxConcurrentTaskCount;
-        public DisCannoliClient DisCannoliClient { get; private set; } = null!;
+        public CannoliClient CannoliClient { get; private set; } = null!;
 
         private readonly PriorityChannel<TJob> _taskChannel;
         private readonly SemaphoreSlim _taskSemaphore;
         private readonly ConcurrentBag<Timer> _repeatingWorkTimers;
         private bool _isRunning, _isDisposed;
 
-        protected DisCannoliWorker(int maxConcurrentTaskCount)
+        protected CannoliWorker(int maxConcurrentTaskCount)
         {
             MaxConcurrentTaskCount = maxConcurrentTaskCount;
 
@@ -36,9 +36,9 @@ namespace DisCannoli.Workers
             Task.Run(InitializeTaskQueue);
         }
 
-        internal override void Setup(DisCannoliClient disCannoliClient)
+        internal override void Setup(CannoliClient cannoliClient)
         {
-            DisCannoliClient = disCannoliClient;
+            CannoliClient = cannoliClient;
             StartTaskQueue();
         }
 
@@ -95,11 +95,11 @@ namespace DisCannoli.Workers
         {
             try
             {
-                var dbContextFactory = (IDbContextFactory<TContext>)DisCannoliClient.DbContextFactory;
+                var dbContextFactory = (IDbContextFactory<TContext>)CannoliClient.DbContextFactory;
 
                 using var db = dbContextFactory.CreateDbContext();
 
-                await DoWork(db, DisCannoliClient.DiscordClient, item);
+                await DoWork(db, CannoliClient.DiscordClient, item);
 
                 await db.SaveChangesAsync();
             }

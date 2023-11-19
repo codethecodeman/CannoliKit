@@ -1,13 +1,13 @@
 ﻿using Discord;
 
-namespace DisCannoli.Workers
+namespace CannoliKit.Workers
 {
-    public abstract class DisCannoliWorkerBase
+    public abstract class CannoliWorkerBase
     {
         internal delegate Task LogEventHandler(LogMessage e);
         internal event LogEventHandler? Log;
 
-        internal abstract void Setup(DisCannoliClient disCannoliClient);
+        internal abstract void Setup(CannoliClient cannoliClient);
 
         protected async Task EmitLog(LogMessage logMessage)
         {

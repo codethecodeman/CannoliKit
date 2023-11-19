@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
-namespace DisCannoli.Models
+namespace CannoliKit.Models
 {
     [Index(nameof(ExpiresOn))]
     public sealed class SaveState

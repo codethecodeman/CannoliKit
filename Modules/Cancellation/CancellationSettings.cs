@@ -1,6 +1,6 @@
-﻿using DisCannoli.Modules.States;
+﻿using CannoliKit.Modules.States;
 
-namespace DisCannoli.Modules.Cancellation
+namespace CannoliKit.Modules.Cancellation
 {
     public class CancellationSettings
     {
@@ -14,9 +14,9 @@ namespace DisCannoli.Modules.Cancellation
             set => State.CancelRouteId = value;
         }
 
-        internal DisCannoliModuleState State { get; set; }
+        internal CannoliModuleState State { get; set; }
 
-        public CancellationSettings(DisCannoliModuleState state)
+        public CancellationSettings(CannoliModuleState state)
         {
             IsEnabled = false;
             ButtonLabel = "Cancel";

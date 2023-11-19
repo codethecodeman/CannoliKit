@@ -1,16 +1,16 @@
-﻿using DisCannoli.Enums;
-using DisCannoli.Interfaces;
-using DisCannoli.Models;
+﻿using CannoliKit.Enums;
+using CannoliKit.Interfaces;
+using CannoliKit.Models;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
-namespace DisCannoli.Utilities
+namespace CannoliKit.Utilities
 {
     public static class RouteUtility
     {
-        private const string RoutePrefix = "DisCannoli.Route.";
+        private const string RoutePrefix = "CannoliKit.Route.";
 
-        internal static async Task<Route?> GetRoute(IDisCannoliDbContext db, string id)
+        internal static async Task<Route?> GetRoute(ICannoliDbContext db, string id)
         {
             var route = db.CannoliRoutes.Local
                 .FirstOrDefault(m =>
@@ -23,7 +23,7 @@ namespace DisCannoli.Utilities
                     m.RouteId == id);
         }
 
-        internal static async Task<Route?> GetRoute(IDisCannoliDbContext db, RouteType routeType, string id)
+        internal static async Task<Route?> GetRoute(ICannoliDbContext db, RouteType routeType, string id)
         {
             var route = db.CannoliRoutes.Local
                 .FirstOrDefault(m =>
@@ -38,7 +38,7 @@ namespace DisCannoli.Utilities
                     && m.RouteId == id);
         }
 
-        public static async Task SetStateIdToBeDeleted(IDisCannoliDbContext db, string routeId, string StateIdToBeDeleted)
+        public static async Task SetStateIdToBeDeleted(ICannoliDbContext db, string routeId, string StateIdToBeDeleted)
         {
             var route = await GetRoute(db, routeId);
             route!.StateIdToBeDeleted = StateIdToBeDeleted;
@@ -70,18 +70,18 @@ namespace DisCannoli.Utilities
             return route;
         }
 
-        internal static void AddRoute(IDisCannoliDbContext db, Route route)
+        internal static void AddRoute(ICannoliDbContext db, Route route)
         {
             db.CannoliRoutes.Add(route);
         }
 
-        internal static async Task RemoveRoutes(IDisCannoliDbContext db, string stateId)
+        internal static async Task RemoveRoutes(ICannoliDbContext db, string stateId)
         {
             var mappings = await db.CannoliRoutes
                 .Where(m => m.StateId == stateId)
                 .ToListAsync();
 
-            if (mappings.Any())
+            if (mappings.Count != 0)
             {
                 db.CannoliRoutes.RemoveRange(mappings);
             }
@@ -93,7 +93,7 @@ namespace DisCannoli.Utilities
         }
 
         internal static async Task RouteToModuleCallback(
-            IDisCannoliDbContext db,
+            ICannoliDbContext db,
             DiscordSocketClient discordClient,
             Route route,
             object parameter)

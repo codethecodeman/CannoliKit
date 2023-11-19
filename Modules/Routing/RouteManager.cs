@@ -1,24 +1,24 @@
-﻿using DisCannoli.Enums;
-using DisCannoli.Interfaces;
-using DisCannoli.Models;
-using DisCannoli.Modules.States;
-using DisCannoli.Utilities;
-using Discord.WebSocket;
+﻿using Discord.WebSocket;
 using System.Reflection;
+using CannoliKit.Enums;
+using CannoliKit.Interfaces;
+using CannoliKit.Models;
+using CannoliKit.Modules.States;
+using CannoliKit.Utilities;
 
-namespace DisCannoli.Modules.Routing
+namespace CannoliKit.Modules.Routing
 {
     public class RouteManager
     {
         public delegate Task MessageComponentCallback(SocketMessageComponent messageComponent, Route route);
         public delegate Task ModalCallback(SocketModal modal, Route route);
-        internal DisCannoliModuleState State { get; set; }
+        internal CannoliModuleState State { get; set; }
 
-        private readonly IDisCannoliDbContext _db;
+        private readonly ICannoliDbContext _db;
         private readonly Type _type;
         private readonly List<Route> _routesToAdd;
 
-        public RouteManager(IDisCannoliDbContext db, Type type, DisCannoliModuleState state)
+        public RouteManager(ICannoliDbContext db, Type type, CannoliModuleState state)
         {
             _db = db;
             _type = type;

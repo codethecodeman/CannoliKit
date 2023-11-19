@@ -1,9 +1,9 @@
-﻿using DisCannoli.Enums;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CannoliKit.Enums;
 
-namespace DisCannoli.Models
+namespace CannoliKit.Models
 {
     [Index(nameof(Type))]
     [Index(nameof(StateId))]

@@ -1,7 +1,7 @@
 ﻿using Discord;
 using System.Text;
 
-namespace DisCannoli.Modules.Pagination
+namespace CannoliKit.Modules.Pagination
 {
     public class Pagination
     {

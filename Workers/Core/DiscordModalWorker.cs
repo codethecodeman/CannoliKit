@@ -1,14 +1,14 @@
-﻿using DisCannoli.Enums;
-using DisCannoli.Interfaces;
-using DisCannoli.Utilities;
-using DisCannoli.Workers.Jobs;
+﻿using CannoliKit.Enums;
+using CannoliKit.Interfaces;
+using CannoliKit.Utilities;
+using CannoliKit.Workers.Jobs;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
-namespace DisCannoli.Workers
+namespace CannoliKit.Workers.Core
 {
-    public class DiscordModalWorker<TContext> : DisCannoliWorker<TContext, DiscordModalJob> where TContext : DbContext, IDisCannoliDbContext
+    internal class DiscordModalWorker<TContext> : CannoliWorker<TContext, DiscordModalJob> where TContext : DbContext, ICannoliDbContext
     {
         public DiscordModalWorker(int maxConcurrentTaskCount) : base(maxConcurrentTaskCount)
         {
@@ -22,7 +22,7 @@ namespace DisCannoli.Workers
 
                 if (route == null) return;
 
-                await RouteUtility.RouteToModuleCallback(db, DisCannoliClient.DiscordClient, route, item.Modal);
+                await RouteUtility.RouteToModuleCallback(db, CannoliClient.DiscordClient, route, item.Modal);
             }
             catch (Exception ex)
             {

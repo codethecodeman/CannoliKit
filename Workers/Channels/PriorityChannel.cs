@@ -1,7 +1,7 @@
-﻿using DisCannoli.Enums;
-using System.Threading.Channels;
+﻿using System.Threading.Channels;
+using CannoliKit.Enums;
 
-namespace DisCannoli.Workers.Channels
+namespace CannoliKit.Workers.Channels
 {
     internal class PriorityChannel<T> : IDisposable
     {

@@ -1,10 +1,10 @@
-﻿using DisCannoli.Interfaces;
-using DisCannoli.Utilities;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
+using CannoliKit.Interfaces;
+using CannoliKit.Utilities;
 
-namespace DisCannoli.Modules.States
+namespace CannoliKit.Modules.States
 {
-    public class DisCannoliModuleState
+    public class CannoliModuleState
     {
         public string Id { get; init; }
 
@@ -19,11 +19,11 @@ namespace DisCannoli.Modules.States
 
         internal bool DidSaveAtLeastOnce { get; private set; }
 
-        internal IDisCannoliDbContext Db { get; set; } = null!;
+        internal ICannoliDbContext Db { get; set; } = null!;
 
         internal event EventHandler? OnSave;
 
-        public DisCannoliModuleState()
+        public CannoliModuleState()
         {
             Id = Guid.NewGuid().ToString();
             ExpiresOn = DateTime.UtcNow.AddHours(1);

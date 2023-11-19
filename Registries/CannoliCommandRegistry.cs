@@ -1,21 +1,21 @@
-﻿using DisCannoli.Commands;
-using Discord;
+﻿using Discord;
 using System.Collections.Concurrent;
+using CannoliKit.Commands;
 
-namespace DisCannoli
+namespace CannoliKit.Registries
 {
-    public class DisCannoliCommandRegistry
+    public class CannoliCommandRegistry
     {
-        private readonly DisCannoliClient _cannoliClient;
-        private readonly ConcurrentDictionary<Type, DisCannoliCommandBase> _commands;
+        private readonly CannoliClient _cannoliClient;
+        private readonly ConcurrentDictionary<Type, CannoliCommandBase> _commands;
 
-        internal DisCannoliCommandRegistry(DisCannoliClient cannoliClient)
+        internal CannoliCommandRegistry(CannoliClient cannoliClient)
         {
-            _commands = new ConcurrentDictionary<Type, DisCannoliCommandBase>();
+            _commands = new ConcurrentDictionary<Type, CannoliCommandBase>();
             _cannoliClient = cannoliClient;
         }
 
-        public void Add(DisCannoliCommandBase command)
+        public void Add(CannoliCommandBase command)
         {
             if (_commands.ContainsKey(command.GetType())) return;
 
@@ -23,14 +23,14 @@ namespace DisCannoli
             _commands[command.GetType()] = command;
         }
 
-        public T? GetCommand<T>() where T : DisCannoliCommandBase
+        public T? GetCommand<T>() where T : CannoliCommandBase
         {
             return _commands.TryGetValue(typeof(T), out var worker)
                 ? (T?)worker
                 : null;
         }
 
-        public DisCannoliCommandBase? GetCommand(string commandName)
+        public CannoliCommandBase? GetCommand(string commandName)
         {
             var command = _commands.Values.FirstOrDefault(c => c.Name == commandName);
 

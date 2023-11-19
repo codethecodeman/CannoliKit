@@ -1,19 +1,19 @@
-﻿using DisCannoli.Extensions;
-using DisCannoli.Interfaces;
-using DisCannoli.Models;
-using DisCannoli.Modules.Cancellation;
-using DisCannoli.Modules.Routing;
-using DisCannoli.Modules.States;
-using DisCannoli.Utilities;
+﻿using CannoliKit.Interfaces;
+using CannoliKit.Models;
+using CannoliKit.Modules.Cancellation;
+using CannoliKit.Modules.Routing;
+using CannoliKit.Modules.States;
+using CannoliKit.Utilities;
+using CannoliKit.Extensions;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
-namespace DisCannoli.Modules
+namespace CannoliKit.Modules
 {
-    public abstract class DisCannoliModule<TContext, TState>
-        where TContext : DbContext, IDisCannoliDbContext
-        where TState : DisCannoliModuleState, new()
+    public abstract class CannoliModule<TContext, TState>
+        where TContext : DbContext, ICannoliDbContext
+        where TState : CannoliModuleState, new()
     {
         protected readonly DiscordSocketClient DiscordClient;
         protected readonly TContext Db;
@@ -28,7 +28,7 @@ namespace DisCannoli.Modules
             set => State.CancelRouteId = value;
         }
 
-        protected DisCannoliModule(TContext db, DiscordSocketClient discordClient)
+        protected CannoliModule(TContext db, DiscordSocketClient discordClient)
         {
             Db = db;
             DiscordClient = discordClient;
@@ -40,7 +40,7 @@ namespace DisCannoli.Modules
             WireupState();
         }
 
-        public async Task<DisCannoliModuleComponents> BuildComponents()
+        public async Task<CannoliModuleComponents> BuildComponents()
         {
             var scaffolding = await Setup();
 
@@ -103,7 +103,7 @@ namespace DisCannoli.Modules
                 embeds = null;
             }
 
-            return new DisCannoliModuleComponents(
+            return new CannoliModuleComponents(
                 content,
                 embeds?.ToArray(),
                 componentBuilder?.Build());
@@ -126,7 +126,7 @@ namespace DisCannoli.Modules
             WireupState();
         }
 
-        protected abstract Task<DisCannoliModuleScaffolding> Setup();
+        protected abstract Task<CannoliModuleScaffolding> Setup();
 
         protected async Task OnPageChanged(SocketMessageComponent messageComponent, Route route)
         {

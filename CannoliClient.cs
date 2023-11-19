@@ -1,44 +1,54 @@
-﻿using DisCannoli.Enums;
-using DisCannoli.Interfaces;
-using DisCannoli.Utilities;
-using DisCannoli.Workers;
-using DisCannoli.Workers.Jobs;
+﻿using CannoliKit.Enums;
+using CannoliKit.Interfaces;
+using CannoliKit.Registries;
+using CannoliKit.Utilities;
+using CannoliKit.Workers;
+using CannoliKit.Workers.Core;
+using CannoliKit.Workers.Jobs;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
-namespace DisCannoli
+namespace CannoliKit
 {
-    public class DisCannoliClient
+    public class CannoliClient
     {
         public delegate Task LogEventHandler(LogMessage e);
         public event LogEventHandler? Log;
-        public DisCannoliWorkerRegistry Workers { get; }
-        public DisCannoliCommandRegistry Commands { get; }
+        public CannoliWorkerRegistry Workers { get; }
+        public CannoliCommandRegistry Commands { get; }
         public DiscordSocketClient DiscordClient { get; init; }
         internal object DbContextFactory { get; private set; } = null!;
 
-        public DisCannoliClient(DiscordSocketClient discordClient)
+        /// <summary>
+        /// Initializes a new Cannoli client with the provided Discord client.
+        /// </summary>
+        /// <param name="discordClient"></param>
+        public CannoliClient(DiscordSocketClient discordClient)
         {
             DiscordClient = discordClient;
-            Workers = new DisCannoliWorkerRegistry(this);
-            Commands = new DisCannoliCommandRegistry(this);
+            Workers = new CannoliWorkerRegistry(this);
+            Commands = new CannoliCommandRegistry(this);
         }
 
+        /// <summary>
+        /// Sets up the Cannoli client with the provided DbContextFactory.
+        /// </summary>
+        /// <typeparam name="TContext">A DbContext type which implements ICannoliDbContext.</typeparam>
+        /// <param name="dbContextFactory">The DbContextFactory to use for the Cannoli client.</param>
         public void Setup<TContext>(
-            IDbContextFactory<TContext> dbContextFactory,
-            int baseWorkerMaxConcurrentTaskCount = 16)
-            where TContext : DbContext, IDisCannoliDbContext
+            IDbContextFactory<TContext> dbContextFactory)
+            where TContext : DbContext, ICannoliDbContext
         {
             DbContextFactory = dbContextFactory;
-            InitializeWorkers<TContext>(baseWorkerMaxConcurrentTaskCount);
+            InitializeWorkers<TContext>();
             SubscribeCommandEvents<TContext>();
             SubscribeMessageComponentEvents<TContext>();
             SubscribeModalEvents<TContext>();
         }
 
         private void SubscribeCommandEvents<TContext>()
-            where TContext : DbContext, IDisCannoliDbContext
+            where TContext : DbContext, ICannoliDbContext
         {
             async Task Enqueue(SocketCommandBase arg)
             {
@@ -68,7 +78,7 @@ namespace DisCannoli
         }
 
         private void SubscribeMessageComponentEvents<TContext>()
-            where TContext : DbContext, IDisCannoliDbContext
+            where TContext : DbContext, ICannoliDbContext
         {
             async Task Enqueue(SocketMessageComponent arg)
             {
@@ -98,7 +108,7 @@ namespace DisCannoli
             DiscordClient.SelectMenuExecuted += Enqueue;
         }
 
-        private void SubscribeModalEvents<TContext>() where TContext : DbContext, IDisCannoliDbContext
+        private void SubscribeModalEvents<TContext>() where TContext : DbContext, ICannoliDbContext
         {
             async Task Enqueue(SocketModal arg)
             {
@@ -117,19 +127,19 @@ namespace DisCannoli
             DiscordClient.ModalSubmitted += Enqueue;
         }
 
-        private void InitializeWorkers<TContext>(int baseWorkerMaxConcurrentTaskCount)
-            where TContext : DbContext, IDisCannoliDbContext
+        private void InitializeWorkers<TContext>()
+            where TContext : DbContext, ICannoliDbContext
         {
             Workers.Add(new DiscordCommandWorker<TContext>(
-                maxConcurrentTaskCount: baseWorkerMaxConcurrentTaskCount));
+                maxConcurrentTaskCount: int.MaxValue));
 
             Workers.Add(new DiscordMessageComponentWorker<TContext>(
-                maxConcurrentTaskCount: baseWorkerMaxConcurrentTaskCount));
+                maxConcurrentTaskCount: int.MaxValue));
 
             Workers.Add(new DiscordModalWorker<TContext>(
-                maxConcurrentTaskCount: baseWorkerMaxConcurrentTaskCount));
+                maxConcurrentTaskCount: int.MaxValue));
 
-            var stateCleanupWorker = new DisCannoliCleanupWorker<TContext>(
+            var stateCleanupWorker = new CannoliCleanupWorker<TContext>(
                 maxConcurrentTaskCount: 1);
 
             stateCleanupWorker.ScheduleRepeatingJob(
