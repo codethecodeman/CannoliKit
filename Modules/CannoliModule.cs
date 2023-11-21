@@ -1,10 +1,9 @@
-﻿using CannoliKit.Interfaces;
+﻿using CannoliKit.Extensions;
+using CannoliKit.Interfaces;
 using CannoliKit.Models;
-using CannoliKit.Modules.Cancellation;
 using CannoliKit.Modules.Routing;
 using CannoliKit.Modules.States;
 using CannoliKit.Utilities;
-using CannoliKit.Extensions;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +18,7 @@ namespace CannoliKit.Modules
         protected readonly TContext Db;
         protected readonly Pagination.Pagination Pagination;
         protected readonly RouteManager RouteManager;
-        protected readonly CancellationSettings Cancellation;
+        protected readonly Cancellation.CancellationSettings Cancellation;
         protected TState State { get; private set; }
 
         public string? CancelRouteId
@@ -35,7 +34,7 @@ namespace CannoliKit.Modules
             State = new TState();
             Pagination = new Pagination.Pagination();
             RouteManager = new RouteManager(Db, GetType(), State);
-            Cancellation = new CancellationSettings(State);
+            Cancellation = new Cancellation.CancellationSettings(State);
 
             WireupState();
         }

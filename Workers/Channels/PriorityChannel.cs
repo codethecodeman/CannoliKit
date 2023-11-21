@@ -1,5 +1,5 @@
-﻿using System.Threading.Channels;
-using CannoliKit.Enums;
+﻿using CannoliKit.Enums;
+using System.Threading.Channels;
 
 namespace CannoliKit.Workers.Channels
 {
@@ -29,7 +29,7 @@ namespace CannoliKit.Workers.Channels
             }
         }
 
-        public async ValueTask<T> ReadAsync()
+        internal async ValueTask<T> ReadAsync()
         {
             while (true)
             {

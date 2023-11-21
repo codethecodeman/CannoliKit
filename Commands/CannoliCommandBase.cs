@@ -36,5 +36,7 @@ namespace CannoliKit.Commands
         /// </summary>
         /// <returns>The command properties to be used for registering the command with Discord.</returns>
         public abstract ApplicationCommandProperties Build();
+
+        internal CannoliCommandBase() { }
     }
 }

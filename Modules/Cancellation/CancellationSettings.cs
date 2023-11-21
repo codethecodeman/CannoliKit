@@ -2,7 +2,7 @@
 
 namespace CannoliKit.Modules.Cancellation
 {
-    public class CancellationSettings
+    public sealed class CancellationSettings
     {
         public bool IsEnabled { get; set; }
         public bool HasCustomRouting => CustomRouteId != null;
@@ -16,7 +16,7 @@ namespace CannoliKit.Modules.Cancellation
 
         internal CannoliModuleState State { get; set; }
 
-        public CancellationSettings(CannoliModuleState state)
+        internal CancellationSettings(CannoliModuleState state)
         {
             IsEnabled = false;
             ButtonLabel = "Cancel";

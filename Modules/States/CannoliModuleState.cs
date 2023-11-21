@@ -1,18 +1,18 @@
-﻿using System.Text.Json.Serialization;
-using CannoliKit.Interfaces;
+﻿using CannoliKit.Interfaces;
 using CannoliKit.Utilities;
+using System.Text.Json.Serialization;
 
 namespace CannoliKit.Modules.States
 {
     public class CannoliModuleState
     {
-        public string Id { get; init; }
+        public string Id { get; init; } = Guid.NewGuid().ToString();
 
         public string? InfoMessage { get; set; }
 
         public string? ErrorMessage { get; set; }
 
-        public DateTime ExpiresOn { get; set; }
+        public DateTime ExpiresOn { get; set; } = DateTime.UtcNow.AddHours(1);
 
         [JsonInclude]
         internal string? CancelRouteId { get; set; }
@@ -22,12 +22,6 @@ namespace CannoliKit.Modules.States
         internal ICannoliDbContext Db { get; set; } = null!;
 
         internal event EventHandler? OnSave;
-
-        public CannoliModuleState()
-        {
-            Id = Guid.NewGuid().ToString();
-            ExpiresOn = DateTime.UtcNow.AddHours(1);
-        }
 
         /// <summary>
         /// Add or update the state in the database.

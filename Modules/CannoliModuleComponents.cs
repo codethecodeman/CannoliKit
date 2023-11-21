@@ -8,14 +8,14 @@ namespace CannoliKit.Modules
         public Embed[]? Embeds { get; set; }
         public MessageComponent? MessageComponent { get; set; }
 
-        public CannoliModuleComponents(string? content, Embed[]? embeds, MessageComponent? messageComponent = null)
+        internal CannoliModuleComponents(string? content, Embed[]? embeds, MessageComponent? messageComponent = null)
         {
             Content = content;
             Embeds = embeds;
             MessageComponent = messageComponent;
         }
 
-        public void ApplyToMessageProperties(MessageProperties messageProperties)
+        internal void ApplyToMessageProperties(MessageProperties messageProperties)
         {
             messageProperties.Embeds = Embeds;
             messageProperties.Components = MessageComponent;

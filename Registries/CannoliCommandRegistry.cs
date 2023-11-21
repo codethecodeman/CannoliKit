@@ -1,6 +1,6 @@
-﻿using Discord;
+﻿using CannoliKit.Commands;
+using Discord;
 using System.Collections.Concurrent;
-using CannoliKit.Commands;
 
 namespace CannoliKit.Registries
 {

@@ -7,6 +7,8 @@ namespace CannoliKit.Workers
         internal delegate Task LogEventHandler(LogMessage e);
         internal event LogEventHandler? Log;
 
+        internal CannoliWorkerBase() { }
+
         internal abstract void Setup(CannoliClient cannoliClient);
 
         protected async Task EmitLog(LogMessage logMessage)

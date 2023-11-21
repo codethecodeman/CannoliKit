@@ -1,15 +1,13 @@
 ﻿namespace CannoliKit.Modules.Pagination
 {
-    public class ListItem<TItem>
+    public sealed class ListItem<TItem>
     {
-        public string? SelectMenuKey { get; set; }
-        public string Label { get; set; }
+        public string Marker { get; set; }
         public TItem Item { get; }
 
-        public ListItem(string? selectMenuKey, string label, TItem item)
+        internal ListItem(string marker, TItem item)
         {
-            SelectMenuKey = selectMenuKey;
-            Label = label;
+            Marker = marker;
             Item = item;
         }
     }

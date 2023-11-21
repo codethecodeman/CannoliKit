@@ -3,7 +3,7 @@ using System.Text;
 
 namespace CannoliKit.Modules.Pagination
 {
-    public class Pagination
+    public sealed class Pagination
     {
         public bool IsEnabled { get; set; }
         public int NumItemsPerField { get; set; }
@@ -13,6 +13,8 @@ namespace CannoliKit.Modules.Pagination
         public int NumPages { get; private set; }
         public int PageNumber { get; internal set; }
         private int ListStartIndex { get; set; }
+
+        internal Pagination() { }
 
         public void Setup(int itemCount)
         {
@@ -93,48 +95,46 @@ namespace CannoliKit.Modules.Pagination
 
                 var listIndex = resetListCounterBetweenPages ? i + 1 - ListStartIndex : i + 1;
 
-                string? selectMenuKey = null;
-                string label;
+                string marker;
 
                 switch (listType)
                 {
                     case ListType.Number:
-                        selectMenuKey = listIndex.ToString();
-                        label = $"{selectMenuKey}.";
+                        marker = $"{listIndex}.";
                         break;
                     case ListType.Letter:
-                        selectMenuKey = listIndex.ToString();
-                        label = $"{IntToLetters(listIndex + 1)}.";
+                        marker = $"{IntToLetters(listIndex + 1)}.";
                         break;
                     case ListType.Bullet:
-                        label = "-";
+                        marker = "-";
                         break;
                     case null:
-                        label = string.Empty;
+                        marker = string.Empty;
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(listType), listType, null);
                 }
 
-                pagedItems.Add(new ListItem<TItem>(selectMenuKey, label, items[i]));
+                pagedItems.Add(
+                    new ListItem<TItem>(marker, items[i]));
             }
 
             if (items.Count <= 0) return pagedItems;
 
-            var maxLabelLength = pagedItems
-                .Max(x => x.Label.Length);
+            var maxMarkerLength = pagedItems
+                .Max(x => x.Marker.Length);
 
             foreach (var item in pagedItems)
             {
-                if (item.Label.Length == maxLabelLength) continue;
+                if (item.Marker.Length == maxMarkerLength) continue;
 
-                item.Label = item.Label.PadLeft(maxLabelLength);
+                item.Marker = item.Marker.PadLeft(maxMarkerLength);
             }
 
             return pagedItems;
         }
 
-        private string IntToLetters(int value)
+        private static string IntToLetters(int value)
         {
             var result = string.Empty;
             while (value > 0)
