@@ -7,7 +7,7 @@ namespace CannoliKit.Models
 {
     [Index(nameof(Type))]
     [Index(nameof(StateId))]
-    public sealed class Route
+    public sealed class CannoliRoute
     {
         [Key]
         public string RouteId { get; set; } = null!;
@@ -25,7 +25,7 @@ namespace CannoliKit.Models
         public string StateId { get; set; } = null!;
 
         [ForeignKey(nameof(StateId))]
-        public SaveState SaveState { get; set; } = null!;
+        public CannoliSaveState CannoliSaveState { get; set; } = null!;
 
         public string? StateIdToBeDeleted { get; set; } = null!;
 

@@ -50,7 +50,7 @@ namespace CannoliKit.Utilities
 
             if (entry == null)
             {
-                entry = new SaveState()
+                entry = new CannoliSaveState()
                 {
                     Id = stateId,
                     ExpiresOn = expiresOn,

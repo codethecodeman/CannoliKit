@@ -10,7 +10,7 @@ namespace CannoliKit.Utilities
     {
         private const string RoutePrefix = "CannoliKit.Route.";
 
-        internal static async Task<Route?> GetRoute(ICannoliDbContext db, string id)
+        internal static async Task<CannoliRoute?> GetRoute(ICannoliDbContext db, string id)
         {
             var route = db.CannoliRoutes.Local
                 .FirstOrDefault(m =>
@@ -23,7 +23,7 @@ namespace CannoliKit.Utilities
                     m.RouteId == id);
         }
 
-        internal static async Task<Route?> GetRoute(ICannoliDbContext db, RouteType routeType, string id)
+        internal static async Task<CannoliRoute?> GetRoute(ICannoliDbContext db, RouteType routeType, string id)
         {
             var route = db.CannoliRoutes.Local
                 .FirstOrDefault(m =>
@@ -38,13 +38,13 @@ namespace CannoliKit.Utilities
                     && m.RouteId == id);
         }
 
-        public static async Task SetStateIdToBeDeleted(ICannoliDbContext db, string routeId, string StateIdToBeDeleted)
+        public static async Task SetStateIdToBeDeleted(ICannoliDbContext db, string routeId, string stateIdToBeDeleted)
         {
             var route = await GetRoute(db, routeId);
-            route!.StateIdToBeDeleted = StateIdToBeDeleted;
+            route!.StateIdToBeDeleted = stateIdToBeDeleted;
         }
 
-        internal static Route CreateRoute(
+        internal static CannoliRoute CreateRoute(
             RouteType routeType,
             string callbackType,
             string callbackMethod,
@@ -54,7 +54,7 @@ namespace CannoliKit.Utilities
             string? parameter2 = null,
             string? parameter3 = null)
         {
-            var route = new Route()
+            var route = new CannoliRoute()
             {
                 RouteId = $"{RoutePrefix}{Guid.NewGuid()}",
                 Type = routeType,
@@ -70,7 +70,7 @@ namespace CannoliKit.Utilities
             return route;
         }
 
-        internal static void AddRoute(ICannoliDbContext db, Route route)
+        internal static void AddRoute(ICannoliDbContext db, CannoliRoute route)
         {
             db.CannoliRoutes.Add(route);
         }
@@ -95,7 +95,7 @@ namespace CannoliKit.Utilities
         internal static async Task RouteToModuleCallback(
             ICannoliDbContext db,
             DiscordSocketClient discordClient,
-            Route route,
+            CannoliRoute route,
             object parameter)
         {
             await RemoveRoutes(db, route.StateId);

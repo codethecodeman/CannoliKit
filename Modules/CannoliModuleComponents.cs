@@ -2,7 +2,7 @@
 
 namespace CannoliKit.Modules
 {
-    public class CannoliModuleComponents
+    public sealed class CannoliModuleComponents
     {
         public string? Content { get; set; }
         public Embed[]? Embeds { get; set; }

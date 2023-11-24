@@ -3,9 +3,9 @@ using CannoliKit.Utilities;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
-namespace CannoliKit.Workers
+namespace CannoliKit.Workers.Core
 {
-    internal class CannoliCleanupWorker<TContext> : CannoliWorker<TContext, bool> where TContext : DbContext, ICannoliDbContext
+    internal sealed class CannoliCleanupWorker<TContext> : CannoliWorker<TContext, bool> where TContext : DbContext, ICannoliDbContext
     {
         internal CannoliCleanupWorker(int maxConcurrentTaskCount) : base(maxConcurrentTaskCount)
         {

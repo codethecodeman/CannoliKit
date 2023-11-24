@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 
 namespace CannoliKit.Registries
 {
-    public class CannoliCommandRegistry
+    public sealed class CannoliCommandRegistry
     {
         private readonly CannoliClient _cannoliClient;
         private readonly ConcurrentDictionary<Type, CannoliCommandBase> _commands;

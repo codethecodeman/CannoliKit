@@ -13,7 +13,6 @@ namespace CannoliKit.Workers
     {
         protected readonly int MaxConcurrentTaskCount;
         public CannoliClient CannoliClient { get; private set; } = null!;
-
         private readonly PriorityChannel<TJob> _taskChannel;
         private readonly SemaphoreSlim _taskSemaphore;
         private readonly ConcurrentBag<Timer> _repeatingWorkTimers;

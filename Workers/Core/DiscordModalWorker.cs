@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CannoliKit.Workers.Core
 {
-    internal class DiscordModalWorker<TContext> : CannoliWorker<TContext, DiscordModalJob> where TContext : DbContext, ICannoliDbContext
+    internal sealed class DiscordModalWorker<TContext> : CannoliWorker<TContext, DiscordModalJob> where TContext : DbContext, ICannoliDbContext
     {
         public DiscordModalWorker(int maxConcurrentTaskCount) : base(maxConcurrentTaskCount)
         {

@@ -1,9 +1,9 @@
-﻿using System.Collections.Concurrent;
-using CannoliKit.Workers;
+﻿using CannoliKit.Workers;
+using System.Collections.Concurrent;
 
 namespace CannoliKit.Registries
 {
-    public class CannoliWorkerRegistry
+    public sealed class CannoliWorkerRegistry
     {
         private readonly CannoliClient _cannoliClient;
         private readonly ConcurrentDictionary<Type, CannoliWorkerBase> _workers;

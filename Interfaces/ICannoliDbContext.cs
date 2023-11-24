@@ -8,11 +8,11 @@ namespace CannoliKit.Interfaces
         /// <summary>
         /// Cannoli module save states.
         /// </summary>
-        DbSet<SaveState> CannoliSaveStates { get; set; }
+        DbSet<CannoliSaveState> CannoliSaveStates { get; set; }
 
         /// <summary>
         /// Cannoli module routes.
         /// </summary>
-        DbSet<Route> CannoliRoutes { get; set; }
+        DbSet<CannoliRoute> CannoliRoutes { get; set; }
     }
 }

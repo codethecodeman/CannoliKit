@@ -127,7 +127,7 @@ namespace CannoliKit.Modules
 
         protected abstract Task<CannoliModuleScaffolding> Setup();
 
-        protected async Task OnPageChanged(SocketMessageComponent messageComponent, Route route)
+        protected async Task OnPageChanged(SocketMessageComponent messageComponent, CannoliRoute route)
         {
             var offset = int.Parse(route.Parameter1!);
 
@@ -136,7 +136,7 @@ namespace CannoliKit.Modules
             await messageComponent.ModifyOriginalResponseAsync(this);
         }
 
-        protected async Task OnExit(SocketMessageComponent messageComponent, Route route)
+        protected async Task OnExit(SocketMessageComponent messageComponent, CannoliRoute route)
         {
             await messageComponent.DeleteOriginalResponseAsync();
 
@@ -201,7 +201,6 @@ namespace CannoliKit.Modules
                 Label = Cancellation.ButtonLabel,
                 Style = ButtonStyle.Secondary,
             }.Build());
-
         }
 
         private async Task UpdateCancellationRoute()

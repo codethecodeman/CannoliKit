@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace CannoliKit.Models
 {
     [Index(nameof(ExpiresOn))]
-    public sealed class SaveState
+    public sealed class CannoliSaveState
     {
         [Key]
         public string Id { get; set; } = null!;

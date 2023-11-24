@@ -2,7 +2,7 @@
 
 namespace CannoliKit.Workers.Jobs
 {
-    internal class DiscordCommandJob
+    internal sealed class DiscordCommandJob
     {
         internal SocketCommandBase SocketCommand { get; init; } = null!;
     }
