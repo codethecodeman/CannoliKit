@@ -1,17 +1,18 @@
-﻿using CannoliKit.Modules.States;
+﻿using CannoliKit.Modules.Routing;
+using CannoliKit.Modules.States;
 
 namespace CannoliKit.Modules.Cancellation
 {
     public sealed class CancellationSettings
     {
         public bool IsEnabled { get; set; }
-        public bool HasCustomRouting => CustomRouteId != null;
+        public bool HasCustomRouting => CustomRoute != null;
         public string ButtonLabel { get; set; }
         public bool DoesDeleteCurrentState { get; set; }
-        internal string? CustomRouteId
+        internal CannoliRouteId? CustomRoute
         {
-            get => State.CancelRouteId;
-            set => State.CancelRouteId = value;
+            get => State.CancelRoute;
+            set => State.CancelRoute = value;
         }
 
         internal CannoliModuleState State { get; set; }

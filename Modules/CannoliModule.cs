@@ -21,12 +21,6 @@ namespace CannoliKit.Modules
         protected readonly Cancellation.CancellationSettings Cancellation;
         protected TState State { get; private set; }
 
-        public string? CancelRouteId
-        {
-            get => State.CancelRouteId;
-            set => State.CancelRouteId = value;
-        }
-
         protected CannoliModule(TContext db, DiscordSocketClient discordClient)
         {
             Db = db;
@@ -51,8 +45,6 @@ namespace CannoliKit.Modules
             AppendPaginationButtons(componentBuilder);
 
             AppendCancellationButton(componentBuilder);
-
-            await UpdateCancellationRoute();
 
             await FinalizeRoutes();
 
@@ -108,6 +100,20 @@ namespace CannoliKit.Modules
                 componentBuilder?.Build());
         }
 
+        public CannoliModule<TContext, TState> SetCancelRoute(CannoliRouteId routeId)
+        {
+            routeId.Route!.StateIdToBeDeleted = State.Id;
+            State.CancelRoute = routeId;
+            return this;
+        }
+
+        public CannoliModule<TContext, TState> AddReturnRoute(string tag, CannoliRouteId routeId)
+        {
+            routeId.Route!.StateIdToBeDeleted = State.Id;
+            State.SecuredReturnRoutes.Add(tag, routeId);
+            return this;
+        }
+
         protected async Task LoadModuleState(string stateId)
         {
             var state = await SaveStateUtility.GetState<TState>(
@@ -122,7 +128,38 @@ namespace CannoliKit.Modules
             Cancellation.State = state;
             RouteManager.State = state;
 
+            await LoadReturnRoutes();
+
+
             WireupState();
+        }
+
+        private async Task LoadReturnRoutes()
+        {
+            var routeFragments = new List<CannoliRouteId>();
+
+            if (State.CancelRoute is { Route: null })
+            {
+                routeFragments.Add(State.CancelRoute);
+            }
+
+            routeFragments.AddRange(
+                State.ReturnRoutes.Values
+                    .Where(x => x.Route == null)
+                    .ToList());
+
+            var routeIds = routeFragments
+                .Select(x => x.RouteId)
+                .ToList();
+
+            var routes = await Db.CannoliRoutes
+                .Where(x => routeIds.Contains(x.RouteId))
+                .ToListAsync();
+
+            foreach (var fragment in routeFragments)
+            {
+                fragment.Route = routes.First(x => x.RouteId == fragment.RouteId);
+            }
         }
 
         protected abstract Task<CannoliModuleScaffolding> Setup();
@@ -136,7 +173,7 @@ namespace CannoliKit.Modules
             await messageComponent.ModifyOriginalResponseAsync(this);
         }
 
-        protected async Task OnExit(SocketMessageComponent messageComponent, CannoliRoute route)
+        protected async Task OnCancel(SocketMessageComponent messageComponent, CannoliRoute route)
         {
             await messageComponent.DeleteOriginalResponseAsync();
 
@@ -196,31 +233,17 @@ namespace CannoliKit.Modules
             rowBuilder.Components.Insert(0, new ButtonBuilder()
             {
                 CustomId =
-                    Cancellation.CustomRouteId
-                    ?? RouteManager.CreateMessageComponentRoute(callback: OnExit),
+                    Cancellation.HasCustomRouting
+                    ? Cancellation.CustomRoute!
+                    : RouteManager.CreateMessageComponentRoute(callback: OnCancel),
                 Label = Cancellation.ButtonLabel,
                 Style = ButtonStyle.Secondary,
             }.Build());
         }
 
-        private async Task UpdateCancellationRoute()
-        {
-            if (Cancellation.IsEnabled == false) return;
-
-            if (Cancellation is { CustomRouteId: not null, DoesDeleteCurrentState: true })
-            {
-                var route = await RouteUtility.GetRoute(Db, Cancellation.CustomRouteId);
-
-                if (route != null)
-                {
-                    route.StateIdToBeDeleted = State.Id;
-                }
-            }
-        }
-
         private async Task FinalizeRoutes()
         {
-            if (Cancellation.IsEnabled || Pagination.IsEnabled)
+            if (Pagination.IsEnabled)
             {
                 if (State.DidSaveAtLeastOnce == false)
                 {

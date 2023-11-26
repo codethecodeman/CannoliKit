@@ -38,12 +38,6 @@ namespace CannoliKit.Utilities
                     && m.RouteId == id);
         }
 
-        public static async Task SetStateIdToBeDeleted(ICannoliDbContext db, string routeId, string stateIdToBeDeleted)
-        {
-            var route = await GetRoute(db, routeId);
-            route!.StateIdToBeDeleted = stateIdToBeDeleted;
-        }
-
         internal static CannoliRoute CreateRoute(
             RouteType routeType,
             string callbackType,

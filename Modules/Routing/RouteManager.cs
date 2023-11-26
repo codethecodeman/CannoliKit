@@ -41,7 +41,7 @@ namespace CannoliKit.Modules.Routing
                 parameter2,
                 parameter3);
 
-            return new CannoliRouteId(route.RouteId);
+            return new CannoliRouteId(route);
         }
 
         public CannoliRouteId CreateModalRoute(
@@ -58,7 +58,7 @@ namespace CannoliKit.Modules.Routing
                 parameter2,
                 parameter3);
 
-            return new CannoliRouteId(route.RouteId);
+            return new CannoliRouteId(route);
         }
 
         private CannoliRoute CreateRoute(

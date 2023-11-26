@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CannoliKit.Enums;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using CannoliKit.Enums;
 
 namespace CannoliKit.Models
 {
@@ -37,5 +37,15 @@ namespace CannoliKit.Models
         public string? Parameter2 { get; set; }
 
         public string? Parameter3 { get; set; }
+
+        public override string ToString()
+        {
+            return RouteId;
+        }
+
+        public static implicit operator string(CannoliRoute route)
+        {
+            return route.ToString();
+        }
     }
 }

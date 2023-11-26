@@ -1,18 +1,26 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CannoliKit.Converters;
+using CannoliKit.Interfaces;
+using CannoliKit.Models;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using CannoliKit.Interfaces;
-using CannoliKit.Models;
 
 namespace CannoliKit.Utilities
 {
     internal static class SaveStateUtility
     {
-        private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+        private static readonly JsonSerializerOptions JsonSerializerOptions;
+
+        static SaveStateUtility()
         {
-            ReferenceHandler = ReferenceHandler.Preserve
-        };
+            JsonSerializerOptions = new JsonSerializerOptions()
+            {
+                ReferenceHandler = ReferenceHandler.Preserve
+            };
+
+            JsonSerializerOptions.Converters.Add(new CannoliRouteIdJsonConverter());
+        }
 
         internal static async Task<T?> GetState<T>(ICannoliDbContext db, string stateId)
         {

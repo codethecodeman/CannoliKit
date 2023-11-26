@@ -1,4 +1,5 @@
 ﻿using CannoliKit.Interfaces;
+using CannoliKit.Modules.Routing;
 using CannoliKit.Utilities;
 using System.Text.Json.Serialization;
 
@@ -14,8 +15,13 @@ namespace CannoliKit.Modules.States
 
         public DateTime ExpiresOn { get; set; } = DateTime.UtcNow.AddHours(1);
 
+        public CannoliRouteId? CancelRoute { get; internal set; }
+
+        [JsonIgnore]
+        public IReadOnlyDictionary<string, CannoliRouteId> ReturnRoutes => SecuredReturnRoutes;
+
         [JsonInclude]
-        internal string? CancelRouteId { get; set; }
+        internal Dictionary<string, CannoliRouteId> SecuredReturnRoutes = new();
 
         internal bool DidSaveAtLeastOnce { get; private set; }
 
