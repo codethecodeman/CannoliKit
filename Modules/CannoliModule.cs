@@ -17,9 +17,10 @@ namespace CannoliKit.Modules
         protected readonly DiscordSocketClient DiscordClient;
         protected readonly TContext Db;
         protected readonly Pagination.Pagination Pagination;
-        protected readonly RouteManager RouteManager;
+        protected readonly RouteFactory RouteFactory;
         protected readonly Cancellation.CancellationSettings Cancellation;
         protected TState State { get; private set; }
+        protected IReadOnlyDictionary<string, CannoliRouteId> ReturnRoutes => State.ReturnRoutes;
 
         protected CannoliModule(TContext db, DiscordSocketClient discordClient)
         {
@@ -27,10 +28,8 @@ namespace CannoliKit.Modules
             DiscordClient = discordClient;
             State = new TState();
             Pagination = new Pagination.Pagination();
-            RouteManager = new RouteManager(Db, GetType(), State);
+            RouteFactory = new RouteFactory(Db, GetType(), State);
             Cancellation = new Cancellation.CancellationSettings(State);
-
-            WireupState();
         }
 
         public async Task<CannoliModuleComponents> BuildComponents()
@@ -45,8 +44,6 @@ namespace CannoliKit.Modules
             AppendPaginationButtons(componentBuilder);
 
             AppendCancellationButton(componentBuilder);
-
-            await FinalizeRoutes();
 
             var embeds = new List<Embed>();
 
@@ -94,6 +91,8 @@ namespace CannoliKit.Modules
                 embeds = null;
             }
 
+            await SaveModuleState();
+
             return new CannoliModuleComponents(
                 content,
                 embeds?.ToArray(),
@@ -102,19 +101,18 @@ namespace CannoliKit.Modules
 
         public CannoliModule<TContext, TState> SetCancelRoute(CannoliRouteId routeId)
         {
-            routeId.Route!.StateIdToBeDeleted = State.Id;
-            State.CancelRoute = routeId;
+            Cancellation.SetCancelRoute(routeId);
             return this;
         }
 
         public CannoliModule<TContext, TState> AddReturnRoute(string tag, CannoliRouteId routeId)
         {
             routeId.Route!.StateIdToBeDeleted = State.Id;
-            State.SecuredReturnRoutes.Add(tag, routeId);
+            State.ReturnRoutes.Add(tag, routeId);
             return this;
         }
 
-        protected async Task LoadModuleState(string stateId)
+        internal async Task LoadModuleState(string stateId)
         {
             var state = await SaveStateUtility.GetState<TState>(
                 Db,
@@ -126,27 +124,31 @@ namespace CannoliKit.Modules
 
             State = state;
             Cancellation.State = state;
-            RouteManager.State = state;
+            RouteFactory.State = state;
 
             await LoadReturnRoutes();
-
-
-            WireupState();
         }
 
         private async Task LoadReturnRoutes()
         {
-            var routeFragments = new List<CannoliRouteId>();
-
             if (State.CancelRoute is { Route: null })
             {
-                routeFragments.Add(State.CancelRoute);
+                var route = await Db.CannoliRoutes
+                    .FirstOrDefaultAsync(x => x.RouteId == State.CancelRoute.RouteId);
+
+                if (route == null)
+                {
+                    State.CancelRoute = null;
+                }
+                else
+                {
+                    State.CancelRoute.Route = route;
+                }
             }
 
-            routeFragments.AddRange(
-                State.ReturnRoutes.Values
+            var routeFragments = State.ReturnRoutes.Values
                     .Where(x => x.Route == null)
-                    .ToList());
+                    .ToList();
 
             var routeIds = routeFragments
                 .Select(x => x.RouteId)
@@ -156,15 +158,24 @@ namespace CannoliKit.Modules
                 .Where(x => routeIds.Contains(x.RouteId))
                 .ToListAsync();
 
-            foreach (var fragment in routeFragments)
+            foreach (var kv in State.ReturnRoutes.ToList())
             {
-                fragment.Route = routes.First(x => x.RouteId == fragment.RouteId);
+                var route = routes.FirstOrDefault(x => x.RouteId == kv.Value.RouteId);
+
+                if (route == null)
+                {
+                    State.ReturnRoutes.Remove(kv.Key);
+                }
+                else
+                {
+                    State.ReturnRoutes[kv.Key].Route = route;
+                }
             }
         }
 
         protected abstract Task<CannoliModuleScaffolding> Setup();
 
-        protected async Task OnPageChanged(SocketMessageComponent messageComponent, CannoliRoute route)
+        protected async Task OnModulePageChanged(SocketMessageComponent messageComponent, CannoliRoute route)
         {
             var offset = int.Parse(route.Parameter1!);
 
@@ -173,14 +184,10 @@ namespace CannoliKit.Modules
             await messageComponent.ModifyOriginalResponseAsync(this);
         }
 
-        protected async Task OnCancel(SocketMessageComponent messageComponent, CannoliRoute route)
+        protected async Task OnModuleCancelled(SocketMessageComponent messageComponent, CannoliRoute route)
         {
+            State.ExpireNow();
             await messageComponent.DeleteOriginalResponseAsync();
-
-            if (Cancellation.DoesDeleteCurrentState)
-            {
-                await State.Delete();
-            }
         }
 
         private void AppendPaginationButtons(ComponentBuilder componentBuilder)
@@ -191,8 +198,8 @@ namespace CannoliKit.Modules
 
             rowBuilder.WithButton(new ButtonBuilder()
             {
-                CustomId = RouteManager.CreateMessageComponentRoute(
-                    callback: OnPageChanged,
+                CustomId = RouteFactory.CreateMessageComponentRoute(
+                    callback: OnModulePageChanged,
                     parameter1: (Pagination.PageNumber - 1).ToString()),
                 Emote = Emoji.Parse("⬅️"),
                 Style = ButtonStyle.Secondary,
@@ -200,8 +207,8 @@ namespace CannoliKit.Modules
 
             rowBuilder.WithButton(new ButtonBuilder()
             {
-                CustomId = RouteManager.CreateMessageComponentRoute(
-                    callback: OnPageChanged,
+                CustomId = RouteFactory.CreateMessageComponentRoute(
+                    callback: OnModulePageChanged,
                     parameter1: (Pagination.PageNumber + 1).ToString()),
                 Emote = Emoji.Parse("➡️"),
                 Style = ButtonStyle.Secondary,
@@ -230,38 +237,22 @@ namespace CannoliKit.Modules
                 componentBuilder.ActionRows.Add(rowBuilder);
             }
 
-            rowBuilder.Components.Insert(0, new ButtonBuilder()
-            {
-                CustomId =
-                    Cancellation.HasCustomRouting
-                    ? Cancellation.CustomRoute!
-                    : RouteManager.CreateMessageComponentRoute(callback: OnCancel),
-                Label = Cancellation.ButtonLabel,
-                Style = ButtonStyle.Secondary,
-            }.Build());
-        }
-
-        private async Task FinalizeRoutes()
-        {
-            if (Pagination.IsEnabled)
-            {
-                if (State.DidSaveAtLeastOnce == false)
+            rowBuilder.Components.Insert(
+                0,
+                new ButtonBuilder
                 {
-                    throw new InvalidOperationException(
-                        "Cancellation and Pagination requires a module save state for routing. The state must be saved at least once.");
-                }
-
-                await State.Save();
-            }
+                    CustomId =
+                        Cancellation.HasCustomRouting
+                        ? Cancellation.Route!
+                        : RouteFactory.CreateMessageComponentRoute(callback: OnModuleCancelled),
+                    Label = Cancellation.ButtonLabel,
+                    Style = ButtonStyle.Secondary,
+                }.Build());
         }
 
-        private void WireupState()
+        internal async Task SaveModuleState()
         {
-            State.Db = Db;
-            State.OnSave += (s, e) =>
-            {
-                RouteManager.AddRoutes();
-            };
+            await SaveStateUtility.AddOrUpdateState(Db, State.Id, State, State.ExpiresOn);
         }
     }
 }

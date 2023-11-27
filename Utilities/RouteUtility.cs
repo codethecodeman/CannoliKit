@@ -103,6 +103,7 @@ namespace CannoliKit.Utilities
 
             var callbackMethodInfo = ReflectionUtility.GetMethodInfo(classType, route.CallbackMethod)!;
             var loadStateMethodInfo = ReflectionUtility.GetMethodInfo(classType, "LoadModuleState")!;
+            var saveStateMethodInfo = ReflectionUtility.GetMethodInfo(classType, "SaveModuleState")!;
             var target = Activator.CreateInstance(classType, db, discordClient);
 
             var loadStateTask = (Task)loadStateMethodInfo.Invoke(target, new object?[] { route.StateId })!;
@@ -110,6 +111,9 @@ namespace CannoliKit.Utilities
 
             var callbackTask = (Task)callbackMethodInfo.Invoke(target, new[] { parameter, route })!;
             await callbackTask;
+
+            var saveStateTask = (Task)saveStateMethodInfo.Invoke(target, null)!;
+            await saveStateTask;
         }
     }
 }

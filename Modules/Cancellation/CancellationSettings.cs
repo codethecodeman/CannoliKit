@@ -6,23 +6,22 @@ namespace CannoliKit.Modules.Cancellation
     public sealed class CancellationSettings
     {
         public bool IsEnabled { get; set; }
-        public bool HasCustomRouting => CustomRoute != null;
+        public bool HasCustomRouting => Route != null;
         public string ButtonLabel { get; set; }
-        public bool DoesDeleteCurrentState { get; set; }
-        internal CannoliRouteId? CustomRoute
-        {
-            get => State.CancelRoute;
-            set => State.CancelRoute = value;
-        }
-
+        internal CannoliRouteId? Route => State.CancelRoute;
         internal CannoliModuleState State { get; set; }
 
         internal CancellationSettings(CannoliModuleState state)
         {
             IsEnabled = false;
             ButtonLabel = "Cancel";
-            DoesDeleteCurrentState = true;
             State = state;
+        }
+
+        public void SetCancelRoute(CannoliRouteId routeId)
+        {
+            routeId.Route!.StateIdToBeDeleted = State.Id;
+            State.CancelRoute = routeId;
         }
     }
 }

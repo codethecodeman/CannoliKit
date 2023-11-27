@@ -8,21 +8,20 @@ using System.Reflection;
 
 namespace CannoliKit.Modules.Routing
 {
-    public sealed class RouteManager
+    public sealed class RouteFactory
     {
         public delegate Task MessageComponentCallback(SocketMessageComponent messageComponent, CannoliRoute route);
         public delegate Task ModalCallback(SocketModal modal, CannoliRoute route);
+
         internal CannoliModuleState State { get; set; }
 
         private readonly ICannoliDbContext _db;
         private readonly Type _type;
-        private readonly List<CannoliRoute> _routesToAdd;
 
-        internal RouteManager(ICannoliDbContext db, Type type, CannoliModuleState state)
+        internal RouteFactory(ICannoliDbContext db, Type type, CannoliModuleState state)
         {
             _db = db;
             _type = type;
-            _routesToAdd = new List<CannoliRoute>();
             State = state;
         }
 
@@ -79,19 +78,9 @@ namespace CannoliKit.Modules.Routing
                 parameter2: parameter2,
                 parameter3: parameter3);
 
-            _routesToAdd.Add(route);
+            RouteUtility.AddRoute(_db, route);
 
             return route;
-        }
-
-        internal void AddRoutes()
-        {
-            foreach (var route in _routesToAdd)
-            {
-                RouteUtility.AddRoute(_db, route);
-            }
-
-            _routesToAdd.Clear();
         }
     }
 }

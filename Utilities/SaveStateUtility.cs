@@ -67,6 +67,7 @@ namespace CannoliKit.Utilities
                 db.CannoliSaveStates.Add(entry);
             }
 
+            entry.ExpiresOn = expiresOn;
             entry.State = Encoding.UTF8.GetBytes(serializedEntry);
             entry.UpdatedOn = DateTime.UtcNow;
         }
