@@ -262,7 +262,9 @@ namespace CannoliKit.Modules
 
         internal async Task SaveModuleState()
         {
+            if (State.IsExpiringNow) return;
             await State.Save();
+            RouteFactory.AddRoutes();
         }
     }
 }

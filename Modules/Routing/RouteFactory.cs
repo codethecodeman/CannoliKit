@@ -17,11 +17,13 @@ namespace CannoliKit.Modules.Routing
 
         private readonly ICannoliDbContext _db;
         private readonly Type _type;
+        private readonly List<CannoliRoute> _routesToAdd;
 
         internal RouteFactory(ICannoliDbContext db, Type type, CannoliModuleState state)
         {
             _db = db;
             _type = type;
+            _routesToAdd = new List<CannoliRoute>();
             State = state;
         }
 
@@ -78,9 +80,17 @@ namespace CannoliKit.Modules.Routing
                 parameter2: parameter2,
                 parameter3: parameter3);
 
-            RouteUtility.AddRoute(_db, route);
+            _routesToAdd.Add(route);
 
             return route;
+        }
+
+        internal void AddRoutes()
+        {
+            foreach (var route in _routesToAdd)
+            {
+                RouteUtility.AddRoute(_db, route);
+            }
         }
     }
 }
