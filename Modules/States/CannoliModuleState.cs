@@ -1,4 +1,6 @@
-﻿using CannoliKit.Modules.Routing;
+﻿using CannoliKit.Interfaces;
+using CannoliKit.Modules.Routing;
+using CannoliKit.Utilities;
 using System.Text.Json.Serialization;
 
 namespace CannoliKit.Modules.States
@@ -19,12 +21,22 @@ namespace CannoliKit.Modules.States
         [JsonInclude]
         internal Dictionary<string, CannoliRouteId> ReturnRoutes = new();
 
+        internal ICannoliDbContext Db { get; set; } = null!;
+        internal bool IsExpiringNow;
+
         /// <summary>
         /// Remove the state from the database.
         /// </summary>
-        public void ExpireNow()
+        public async Task ExpireNow()
         {
-            ExpiresOn = DateTime.UtcNow;
+            IsExpiringNow = true;
+            await SaveStateUtility.RemoveState(Db, Id);
+        }
+
+        internal async Task Save()
+        {
+            if (IsExpiringNow) return;
+            await SaveStateUtility.AddOrUpdateState(Db, Id, this, ExpiresOn);
         }
     }
 }

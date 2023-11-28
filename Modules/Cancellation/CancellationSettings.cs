@@ -20,7 +20,6 @@ namespace CannoliKit.Modules.Cancellation
 
         public void SetCancelRoute(CannoliRouteId routeId)
         {
-            routeId.Route!.StateIdToBeDeleted = State.Id;
             State.CancelRoute = routeId;
         }
     }

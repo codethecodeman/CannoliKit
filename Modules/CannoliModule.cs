@@ -26,8 +26,13 @@ namespace CannoliKit.Modules
         {
             Db = db;
             DiscordClient = discordClient;
-            State = new TState();
             Pagination = new Pagination.Pagination();
+
+            State = new TState
+            {
+                Db = Db
+            };
+
             RouteFactory = new RouteFactory(Db, GetType(), State);
             Cancellation = new Cancellation.CancellationSettings(State);
         }
@@ -41,9 +46,9 @@ namespace CannoliKit.Modules
             var componentBuilder = scaffolding.ComponentBuilder
                 ?? new ComponentBuilder();
 
-            AppendPaginationButtons(componentBuilder);
+            AddPaginationButtons(componentBuilder);
 
-            AppendCancellationButton(componentBuilder);
+            AddCancellationButton(componentBuilder);
 
             var embeds = new List<Embed>();
 
@@ -120,6 +125,8 @@ namespace CannoliKit.Modules
 
             if (state == null) return;
 
+            state.Db = Db;
+
             state.ErrorMessage = null;
 
             State = state;
@@ -175,7 +182,7 @@ namespace CannoliKit.Modules
 
         protected abstract Task<CannoliModuleScaffolding> Setup();
 
-        protected async Task OnModulePageChanged(SocketMessageComponent messageComponent, CannoliRoute route)
+        internal async Task OnModulePageChanged(SocketMessageComponent messageComponent, CannoliRoute route)
         {
             var offset = int.Parse(route.Parameter1!);
 
@@ -184,13 +191,13 @@ namespace CannoliKit.Modules
             await messageComponent.ModifyOriginalResponseAsync(this);
         }
 
-        protected async Task OnModuleCancelled(SocketMessageComponent messageComponent, CannoliRoute route)
+        internal async Task OnModuleCancelled(SocketMessageComponent messageComponent, CannoliRoute route)
         {
-            State.ExpireNow();
+            await State.ExpireNow();
             await messageComponent.DeleteOriginalResponseAsync();
         }
 
-        private void AppendPaginationButtons(ComponentBuilder componentBuilder)
+        private void AddPaginationButtons(ComponentBuilder componentBuilder)
         {
             if (Pagination.IsEnabled == false || Pagination.NumPages <= 1) return;
 
@@ -218,7 +225,7 @@ namespace CannoliKit.Modules
             componentBuilder.ActionRows.Insert(0, rowBuilder);
         }
 
-        private void AppendCancellationButton(ComponentBuilder componentBuilder)
+        private void AddCancellationButton(ComponentBuilder componentBuilder)
         {
             if (Cancellation.IsEnabled == false) return;
 
@@ -237,14 +244,17 @@ namespace CannoliKit.Modules
                 componentBuilder.ActionRows.Add(rowBuilder);
             }
 
+            var cancellationRoute = Cancellation.HasCustomRouting
+                ? Cancellation.Route!
+                : RouteFactory.CreateMessageComponentRoute(callback: OnModuleCancelled);
+
+            cancellationRoute.Route!.StateIdToBeDeleted = State.Id;
+
             rowBuilder.Components.Insert(
                 0,
                 new ButtonBuilder
                 {
-                    CustomId =
-                        Cancellation.HasCustomRouting
-                        ? Cancellation.Route!
-                        : RouteFactory.CreateMessageComponentRoute(callback: OnModuleCancelled),
+                    CustomId = cancellationRoute,
                     Label = Cancellation.ButtonLabel,
                     Style = ButtonStyle.Secondary,
                 }.Build());
@@ -252,7 +262,7 @@ namespace CannoliKit.Modules
 
         internal async Task SaveModuleState()
         {
-            await SaveStateUtility.AddOrUpdateState(Db, State.Id, State, State.ExpiresOn);
+            await State.Save();
         }
     }
 }
