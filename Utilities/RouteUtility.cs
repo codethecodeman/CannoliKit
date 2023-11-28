@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CannoliKit.Utilities
 {
-    public static class RouteUtility
+    internal static class RouteUtility
     {
         private const string RoutePrefix = "CannoliKit.Route.";
 
@@ -75,7 +75,7 @@ namespace CannoliKit.Utilities
                 .Where(m => m.StateId == stateId)
                 .ToListAsync();
 
-            if (mappings.Count != 0)
+            if (mappings.Count > 0)
             {
                 db.CannoliRoutes.RemoveRange(mappings);
             }

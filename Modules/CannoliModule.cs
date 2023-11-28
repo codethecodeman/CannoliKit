@@ -106,7 +106,7 @@ namespace CannoliKit.Modules
 
         public CannoliModule<TContext, TState> SetCancelRoute(CannoliRouteId routeId)
         {
-            Cancellation.SetCancelRoute(routeId);
+            Cancellation.SetRoute(routeId);
             return this;
         }
 

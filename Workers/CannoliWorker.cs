@@ -134,20 +134,6 @@ namespace CannoliKit.Workers
             _repeatingWorkTimers.Add(timer);
         }
 
-        private static async Task DelayUntilNextInterval(DateTime beginningOn, TimeSpan repeatEvery)
-        {
-            var now = DateTime.UtcNow;
-            var nextRunOn = beginningOn;
-
-            while (nextRunOn < now)
-            {
-                nextRunOn = nextRunOn.Add(repeatEvery);
-            }
-
-            var difference = nextRunOn - now;
-            await Task.Delay(difference);
-        }
-
         public void StartTaskQueue() => _isRunning = true;
 
         public void StopTaskQueue() => _isRunning = false;

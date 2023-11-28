@@ -95,25 +95,14 @@ namespace CannoliKit.Modules.Pagination
 
                 var listIndex = resetListCounterBetweenPages ? i + 1 - ListStartIndex : i + 1;
 
-                string marker;
-
-                switch (listType)
+                var marker = listType switch
                 {
-                    case ListType.Number:
-                        marker = $"{listIndex}.";
-                        break;
-                    case ListType.Letter:
-                        marker = $"{IntToLetters(listIndex + 1)}.";
-                        break;
-                    case ListType.Bullet:
-                        marker = "-";
-                        break;
-                    case null:
-                        marker = string.Empty;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(listType), listType, null);
-                }
+                    ListType.Number => $"{listIndex}.",
+                    ListType.Letter => $"{IntToLetters(listIndex + 1)}.",
+                    ListType.Bullet => "-",
+                    null => string.Empty,
+                    _ => throw new ArgumentOutOfRangeException(nameof(listType), listType, null)
+                };
 
                 pagedItems.Add(
                     new ListItem<TItem>(marker, items[i]));
