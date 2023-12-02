@@ -127,6 +127,7 @@ namespace CannoliKit.Modules
 
             state.Db = Db;
 
+            state.InfoMessage = null;
             state.ErrorMessage = null;
 
             State = state;
