@@ -14,13 +14,13 @@ namespace CannoliKit.Utilities
         {
             var route = db.CannoliRoutes.Local
                 .FirstOrDefault(m =>
-                    m.RouteId == id);
+                    m.Id == id);
 
             if (route != null) return route;
 
             return await db.CannoliRoutes
                 .FirstOrDefaultAsync(m =>
-                    m.RouteId == id);
+                    m.Id == id);
         }
 
         internal static async Task<CannoliRoute?> GetRoute(ICannoliDbContext db, RouteType routeType, string id)
@@ -28,29 +28,54 @@ namespace CannoliKit.Utilities
             var route = db.CannoliRoutes.Local
                 .FirstOrDefault(m =>
                     m.Type == routeType
-                    && m.RouteId == id);
+                    && m.Id == id);
 
             if (route != null) return route;
 
             return await db.CannoliRoutes
                 .FirstOrDefaultAsync(m =>
                     m.Type == routeType
-                    && m.RouteId == id);
+                    && m.Id == id);
         }
 
-        internal static CannoliRoute CreateRoute(
+        internal static async Task<CannoliRoute?> GetRoute(ICannoliDbContext db, string stateId, string routeName)
+        {
+            var route = db.CannoliRoutes.Local
+                .FirstOrDefault(m =>
+                    m.StateId == stateId
+                    && m.Name == routeName);
+
+            if (route != null) return route;
+
+            return await db.CannoliRoutes
+                .FirstOrDefaultAsync(m =>
+                    m.StateId == stateId
+                    && m.Name == routeName);
+        }
+
+        internal static async Task<CannoliRoute> CreateRoute(
+            ICannoliDbContext db,
             RouteType routeType,
             string callbackType,
             string callbackMethod,
             string stateId,
             Priority priority,
+            string? routeName = null,
             string? parameter1 = null,
             string? parameter2 = null,
             string? parameter3 = null)
         {
-            var route = new CannoliRoute()
+            CannoliRoute? route = null;
+
+            if (routeName != null)
             {
-                RouteId = $"{RoutePrefix}{Guid.NewGuid()}",
+                route = await GetRoute(db, stateId, routeName);
+            }
+
+            route ??= new CannoliRoute()
+            {
+                Id = $"{RoutePrefix}{Guid.NewGuid()}",
+                Name = routeName,
                 Type = routeType,
                 CallbackType = callbackType,
                 CallbackMethod = callbackMethod,

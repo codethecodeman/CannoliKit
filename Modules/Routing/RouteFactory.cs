@@ -27,17 +27,19 @@ namespace CannoliKit.Modules.Routing
             State = state;
         }
 
-        public CannoliRouteId CreateMessageComponentRoute(
+        public async Task<CannoliRouteId> CreateMessageComponentRoute(
             MessageComponentCallback callback,
             Priority priority = Priority.Normal,
+            string? routeName = null,
             string? parameter1 = null,
             string? parameter2 = null,
             string? parameter3 = null)
         {
-            var route = CreateRoute(
+            var route = await CreateRoute(
                 callback.Method,
                 RouteType.MessageComponent,
                 priority,
+                routeName,
                 parameter1,
                 parameter2,
                 parameter3);
@@ -45,16 +47,18 @@ namespace CannoliKit.Modules.Routing
             return new CannoliRouteId(route);
         }
 
-        public CannoliRouteId CreateModalRoute(
+        public async Task<CannoliRouteId> CreateModalRoute(
             ModalCallback callback,
+            string? routeName = null,
             string? parameter1 = null,
             string? parameter2 = null,
             string? parameter3 = null)
         {
-            var route = CreateRoute(
+            var route = await CreateRoute(
                 callback.Method,
                 RouteType.Modal,
                 Priority.High,
+                routeName,
                 parameter1,
                 parameter2,
                 parameter3);
@@ -62,20 +66,23 @@ namespace CannoliKit.Modules.Routing
             return new CannoliRouteId(route);
         }
 
-        private CannoliRoute CreateRoute(
+        private async Task<CannoliRoute> CreateRoute(
             MemberInfo methodInfo,
             RouteType routeType,
             Priority priority,
+            string? routeName = null,
             string? parameter1 = null,
             string? parameter2 = null,
             string? parameter3 = null)
         {
-            var route = RouteUtility.CreateRoute(
+            var route = await RouteUtility.CreateRoute(
+                db: _db,
                 routeType: routeType,
                 callbackType: _type.AssemblyQualifiedName!,
                 callbackMethod: methodInfo.Name,
                 stateId: State.Id,
                 priority: priority,
+                routeName: routeName,
                 parameter1: parameter1,
                 parameter2: parameter2,
                 parameter3: parameter3);

@@ -46,9 +46,9 @@ namespace CannoliKit.Modules
             var componentBuilder = scaffolding.ComponentBuilder
                 ?? new ComponentBuilder();
 
-            AddPaginationButtons(componentBuilder);
+            await AddPaginationButtons(componentBuilder);
 
-            AddCancellationButton(componentBuilder);
+            await AddCancellationButton(componentBuilder);
 
             var embeds = new List<Embed>();
 
@@ -142,7 +142,7 @@ namespace CannoliKit.Modules
             if (State.CancelRoute is { Route: null })
             {
                 var route = await Db.CannoliRoutes
-                    .FirstOrDefaultAsync(x => x.RouteId == State.CancelRoute.RouteId);
+                    .FirstOrDefaultAsync(x => x.Id == State.CancelRoute.RouteId);
 
                 if (route == null)
                 {
@@ -163,12 +163,12 @@ namespace CannoliKit.Modules
                 .ToList();
 
             var routes = await Db.CannoliRoutes
-                .Where(x => routeIds.Contains(x.RouteId))
+                .Where(x => routeIds.Contains(x.Id))
                 .ToListAsync();
 
             foreach (var kv in State.ReturnRoutes.ToList())
             {
-                var route = routes.FirstOrDefault(x => x.RouteId == kv.Value.RouteId);
+                var route = routes.FirstOrDefault(x => x.Id == kv.Value.RouteId);
 
                 if (route == null)
                 {
@@ -198,7 +198,7 @@ namespace CannoliKit.Modules
             await messageComponent.DeleteOriginalResponseAsync();
         }
 
-        private void AddPaginationButtons(ComponentBuilder componentBuilder)
+        private async Task AddPaginationButtons(ComponentBuilder componentBuilder)
         {
             if (Pagination.IsEnabled == false || Pagination.NumPages <= 1) return;
 
@@ -206,7 +206,7 @@ namespace CannoliKit.Modules
 
             rowBuilder.WithButton(new ButtonBuilder()
             {
-                CustomId = RouteFactory.CreateMessageComponentRoute(
+                CustomId = await RouteFactory.CreateMessageComponentRoute(
                     callback: OnModulePageChanged,
                     parameter1: (Pagination.PageNumber - 1).ToString()),
                 Emote = Emoji.Parse("⬅️"),
@@ -215,7 +215,7 @@ namespace CannoliKit.Modules
 
             rowBuilder.WithButton(new ButtonBuilder()
             {
-                CustomId = RouteFactory.CreateMessageComponentRoute(
+                CustomId = await RouteFactory.CreateMessageComponentRoute(
                     callback: OnModulePageChanged,
                     parameter1: (Pagination.PageNumber + 1).ToString()),
                 Emote = Emoji.Parse("➡️"),
@@ -226,7 +226,7 @@ namespace CannoliKit.Modules
             componentBuilder.ActionRows.Insert(0, rowBuilder);
         }
 
-        private void AddCancellationButton(ComponentBuilder componentBuilder)
+        private async Task AddCancellationButton(ComponentBuilder componentBuilder)
         {
             if (Cancellation.IsEnabled == false) return;
 
@@ -247,7 +247,7 @@ namespace CannoliKit.Modules
 
             var cancellationRoute = Cancellation.HasCustomRouting
                 ? Cancellation.Route!
-                : RouteFactory.CreateMessageComponentRoute(callback: OnModuleCancelled);
+                : await RouteFactory.CreateMessageComponentRoute(callback: OnModuleCancelled);
 
             cancellationRoute.Route!.StateIdToBeDeleted = State.Id;
 

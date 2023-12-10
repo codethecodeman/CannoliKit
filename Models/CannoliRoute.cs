@@ -5,12 +5,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CannoliKit.Models
 {
-    [Index(nameof(Type))]
     [Index(nameof(StateId))]
+    [Index(nameof(Id), nameof(Type))]
+    [Index(nameof(StateId), nameof(Name), IsUnique = true)]
     public sealed class CannoliRoute
     {
         [Key]
-        public string RouteId { get; set; } = null!;
+        public string Id { get; set; } = null!;
+
+        public string? Name { get; set; }
 
         [Required]
         public RouteType Type { get; set; }
@@ -40,7 +43,7 @@ namespace CannoliKit.Models
 
         public override string ToString()
         {
-            return RouteId;
+            return Id;
         }
 
         public static implicit operator string(CannoliRoute route)

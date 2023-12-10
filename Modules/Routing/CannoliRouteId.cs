@@ -9,7 +9,7 @@ namespace CannoliKit.Modules.Routing
 
         internal CannoliRouteId(CannoliRoute route)
         {
-            RouteId = route.RouteId;
+            RouteId = route.Id;
             Route = route;
         }
 
@@ -21,7 +21,7 @@ namespace CannoliKit.Modules.Routing
         public override string ToString()
         {
             if (Route == null) throw new ArgumentNullException(nameof(Route));
-            return Route.RouteId;
+            return Route.Id;
         }
 
         public static implicit operator string(CannoliRouteId route)
