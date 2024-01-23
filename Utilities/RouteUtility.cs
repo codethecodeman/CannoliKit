@@ -102,7 +102,8 @@ namespace CannoliKit.Utilities
 
             if (mappings.Count > 0)
             {
-                db.CannoliRoutes.RemoveRange(mappings);
+                db.CannoliRoutes.RemoveRange(
+                    mappings.Where(x => x.Name == null));
             }
         }
 
@@ -117,8 +118,6 @@ namespace CannoliKit.Utilities
             CannoliRoute route,
             object parameter)
         {
-            await RemoveRoutes(db, route.StateId);
-
             if (route.StateIdToBeDeleted != null)
             {
                 await SaveStateUtility.RemoveState(db, route.StateIdToBeDeleted);

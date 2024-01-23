@@ -2,7 +2,7 @@
 
 namespace CannoliKit.Modules
 {
-    public sealed class CannoliModuleScaffolding(
+    public sealed class CannoliModuleParts(
         string? content = null,
         EmbedBuilder? embedBuilder = null,
         ComponentBuilder? componentBuilder = null)

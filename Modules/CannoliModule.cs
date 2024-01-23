@@ -21,8 +21,12 @@ namespace CannoliKit.Modules
         protected readonly Cancellation.CancellationSettings Cancellation;
         protected TState State { get; private set; }
         protected IReadOnlyDictionary<string, CannoliRouteId> ReturnRoutes => State.ReturnRoutes;
+        private const string DefaultCancelRouteName = "CannoliKit.DefaultCancelRoute";
 
-        protected CannoliModule(TContext db, DiscordSocketClient discordClient)
+        protected CannoliModule(
+            TContext db,
+            DiscordSocketClient discordClient,
+            RouteConfiguration? routeConfiguration = null)
         {
             Db = db;
             DiscordClient = discordClient;
@@ -35,15 +39,31 @@ namespace CannoliKit.Modules
 
             RouteFactory = new RouteFactory(Db, GetType(), State);
             Cancellation = new Cancellation.CancellationSettings(State);
+
+            if (routeConfiguration?.CancellationRouteId != null)
+            {
+                Cancellation.SetRoute(routeConfiguration.CancellationRouteId);
+            }
+
+            if (routeConfiguration?.ReturnRouteIds != null)
+            {
+                foreach (var r in routeConfiguration.ReturnRouteIds)
+                {
+                    r.Value.Route!.StateIdToBeDeleted = State.Id;
+                    State.ReturnRoutes.Add(r.Key, r.Value);
+                }
+            }
         }
 
         public async Task<CannoliModuleComponents> BuildComponents()
         {
-            var scaffolding = await Setup();
+            await RouteUtility.RemoveRoutes(Db, State.Id);
 
-            var content = scaffolding.Content;
+            var renderParts = await SetupModule();
 
-            var componentBuilder = scaffolding.ComponentBuilder
+            var content = renderParts.Content;
+
+            var componentBuilder = renderParts.ComponentBuilder
                 ?? new ComponentBuilder();
 
             await AddPaginationButtons(componentBuilder);
@@ -76,9 +96,9 @@ namespace CannoliKit.Modules
                 State.ErrorMessage = null;
             }
 
-            if (scaffolding.EmbedBuilder != null)
+            if (renderParts.EmbedBuilder != null)
             {
-                embeds.Add(scaffolding.EmbedBuilder.Build());
+                embeds.Add(renderParts.EmbedBuilder.Build());
             }
 
             if (string.IsNullOrWhiteSpace(content))
@@ -104,19 +124,6 @@ namespace CannoliKit.Modules
                 componentBuilder?.Build());
         }
 
-        public CannoliModule<TContext, TState> SetCancelRoute(CannoliRouteId routeId)
-        {
-            Cancellation.SetRoute(routeId);
-            return this;
-        }
-
-        public CannoliModule<TContext, TState> AddReturnRoute(string tag, CannoliRouteId routeId)
-        {
-            routeId.Route!.StateIdToBeDeleted = State.Id;
-            State.ReturnRoutes.Add(tag, routeId);
-            return this;
-        }
-
         internal async Task LoadModuleState(string stateId)
         {
             var state = await SaveStateUtility.GetState<TState>(
@@ -137,51 +144,24 @@ namespace CannoliKit.Modules
             await LoadReturnRoutes();
         }
 
-        private async Task LoadReturnRoutes()
+        protected abstract Task<CannoliModuleParts> SetupModule();
+
+        protected async Task UpdateModule(SocketMessageComponent messageComponent)
         {
-            if (State.CancelRoute is { Route: null })
-            {
-                var route = await Db.CannoliRoutes
-                    .FirstOrDefaultAsync(x => x.Id == State.CancelRoute.RouteId);
-
-                if (route == null)
-                {
-                    State.CancelRoute = null;
-                }
-                else
-                {
-                    State.CancelRoute.Route = route;
-                }
-            }
-
-            var routeFragments = State.ReturnRoutes.Values
-                    .Where(x => x.Route == null)
-                    .ToList();
-
-            var routeIds = routeFragments
-                .Select(x => x.RouteId)
-                .ToList();
-
-            var routes = await Db.CannoliRoutes
-                .Where(x => routeIds.Contains(x.Id))
-                .ToListAsync();
-
-            foreach (var kv in State.ReturnRoutes.ToList())
-            {
-                var route = routes.FirstOrDefault(x => x.Id == kv.Value.RouteId);
-
-                if (route == null)
-                {
-                    State.ReturnRoutes.Remove(kv.Key);
-                }
-                else
-                {
-                    State.ReturnRoutes[kv.Key].Route = route;
-                }
-            }
+            await messageComponent.ModifyOriginalResponseAsync(this);
         }
 
-        protected abstract Task<CannoliModuleScaffolding> Setup();
+        protected async Task UpdateModule(SocketModal modal)
+        {
+            await modal.ModifyOriginalResponseAsync(this);
+        }
+
+        internal async Task SaveModuleState()
+        {
+            if (State.IsExpiringNow) return;
+            await State.Save();
+            RouteFactory.AddRoutes();
+        }
 
         internal async Task OnModulePageChanged(SocketMessageComponent messageComponent, CannoliRoute route)
         {
@@ -247,7 +227,9 @@ namespace CannoliKit.Modules
 
             var cancellationRoute = Cancellation.HasCustomRouting
                 ? Cancellation.Route!
-                : await RouteFactory.CreateMessageComponentRoute(callback: OnModuleCancelled);
+                : await RouteFactory.CreateMessageComponentRoute(
+                    routeName: DefaultCancelRouteName,
+                    callback: OnModuleCancelled);
 
             cancellationRoute.Route!.StateIdToBeDeleted = State.Id;
 
@@ -261,11 +243,48 @@ namespace CannoliKit.Modules
                 }.Build());
         }
 
-        internal async Task SaveModuleState()
+        private async Task LoadReturnRoutes()
         {
-            if (State.IsExpiringNow) return;
-            await State.Save();
-            RouteFactory.AddRoutes();
+            if (State.CancelRoute is { Route: null })
+            {
+                var route = await Db.CannoliRoutes
+                    .FirstOrDefaultAsync(x => x.Id == State.CancelRoute.RouteId);
+
+                if (route == null)
+                {
+                    State.CancelRoute = null;
+                }
+                else
+                {
+                    State.CancelRoute.Route = route;
+                }
+            }
+
+            var routeFragments = State.ReturnRoutes.Values
+                .Where(x => x.Route == null)
+                .ToList();
+
+            var routeIds = routeFragments
+                .Select(x => x.RouteId)
+                .ToList();
+
+            var routes = await Db.CannoliRoutes
+                .Where(x => routeIds.Contains(x.Id))
+                .ToListAsync();
+
+            foreach (var kv in State.ReturnRoutes.ToList())
+            {
+                var route = routes.FirstOrDefault(x => x.Id == kv.Value.RouteId);
+
+                if (route == null)
+                {
+                    State.ReturnRoutes.Remove(kv.Key);
+                }
+                else
+                {
+                    State.ReturnRoutes[kv.Key].Route = route;
+                }
+            }
         }
     }
 }

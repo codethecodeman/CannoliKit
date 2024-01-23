@@ -20,6 +20,7 @@ namespace CannoliKit.Workers.Core
             {
                 var route = await RouteUtility.GetRoute(db, RouteType.MessageComponent, item.MessageComponent.Data.CustomId);
 
+                // TODO: Will this cause issues if a late request arrives for a now deleted route?
                 if (route == null)
                 {
                     await ShowExpiredMessage(item.MessageComponent);
