@@ -12,7 +12,7 @@ namespace CannoliKit.Workers
     public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase, IDisposable where TContext : DbContext, ICannoliDbContext
     {
         protected readonly int MaxConcurrentTaskCount;
-        public CannoliClient CannoliClient { get; private set; } = null!;
+        protected CannoliClient CannoliClient { get; private set; } = null!;
         private readonly PriorityChannel<TJob> _taskChannel;
         private readonly SemaphoreSlim _taskSemaphore;
         private readonly ConcurrentBag<Timer> _repeatingWorkTimers;

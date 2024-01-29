@@ -19,7 +19,11 @@ namespace CannoliKit.Workers.Core
 
             foreach (var expiredState in expiredStates)
             {
-                await RouteUtility.RemoveRoutes(db, expiredState.Id);
+                await RouteUtility.RemoveRoutes(
+                    db,
+                    expiredState.Id,
+                    true);
+
                 db.CannoliSaveStates.Remove(expiredState);
             }
         }

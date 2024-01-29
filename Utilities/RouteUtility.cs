@@ -1,14 +1,17 @@
-﻿using CannoliKit.Enums;
+﻿using CannoliKit.Attributes;
+using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Concurrent;
 
 namespace CannoliKit.Utilities
 {
     internal static class RouteUtility
     {
         private const string RoutePrefix = "CannoliKit.Route.";
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> _sequentialExecutionLocks = new();
 
         internal static async Task<CannoliRoute?> GetRoute(ICannoliDbContext db, string id)
         {
@@ -94,7 +97,7 @@ namespace CannoliKit.Utilities
             db.CannoliRoutes.Add(route);
         }
 
-        internal static async Task RemoveRoutes(ICannoliDbContext db, string stateId)
+        internal static async Task RemoveRoutes(ICannoliDbContext db, string stateId, bool doForceRemoval = false)
         {
             var mappings = await db.CannoliRoutes
                 .Where(m => m.StateId == stateId)
@@ -103,7 +106,7 @@ namespace CannoliKit.Utilities
             if (mappings.Count > 0)
             {
                 db.CannoliRoutes.RemoveRange(
-                    mappings.Where(x => x.Name == null));
+                    mappings.Where(x => x.Name == null || doForceRemoval));
             }
         }
 
@@ -128,16 +131,35 @@ namespace CannoliKit.Utilities
             var callbackMethodInfo = ReflectionUtility.GetMethodInfo(classType, route.CallbackMethod)!;
             var loadStateMethodInfo = ReflectionUtility.GetMethodInfo(classType, "LoadModuleState")!;
             var saveStateMethodInfo = ReflectionUtility.GetMethodInfo(classType, "SaveModuleState")!;
-            var target = Activator.CreateInstance(classType, db, discordClient);
 
-            var loadStateTask = (Task)loadStateMethodInfo.Invoke(target, new object?[] { route.StateId })!;
-            await loadStateTask;
+            var isCallbackSequential = callbackMethodInfo.GetCustomAttributes(typeof(SequentialExecutionAttribute), inherit: true).Length != 0;
 
-            var callbackTask = (Task)callbackMethodInfo.Invoke(target, new[] { parameter, route })!;
-            await callbackTask;
+            SemaphoreSlim? semaphore = null;
 
-            var saveStateTask = (Task)saveStateMethodInfo.Invoke(target, null)!;
-            await saveStateTask;
+            if (isCallbackSequential)
+            {
+                semaphore = _sequentialExecutionLocks.GetOrAdd(route.StateId, new SemaphoreSlim(1, 1));
+
+                await semaphore.WaitAsync();
+            }
+
+            try
+            {
+                var target = Activator.CreateInstance(classType, [db, discordClient, null]);
+
+                var loadStateTask = (Task)loadStateMethodInfo.Invoke(target, [route.StateId])!;
+                await loadStateTask;
+
+                var callbackTask = (Task)callbackMethodInfo.Invoke(target, [parameter, route])!;
+                await callbackTask;
+
+                var saveStateTask = (Task)saveStateMethodInfo.Invoke(target, null)!;
+                await saveStateTask;
+            }
+            finally
+            {
+                semaphore?.Release();
+            }
         }
     }
 }

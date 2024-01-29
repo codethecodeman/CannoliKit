@@ -1,11 +1,9 @@
 ﻿namespace CannoliKit.Modules.Routing
 {
-    public class RouteConfigurationBuilder
+    public sealed class RouteConfigurationBuilder
     {
         private CannoliRouteId? _cancellationRouteId;
         private readonly Dictionary<string, CannoliRouteId> _returnRouteIds = [];
-
-        public RouteConfigurationBuilder() { }
 
         public RouteConfigurationBuilder WithCancellationRoute(CannoliRouteId routeId)
         {
@@ -21,11 +19,9 @@
 
         public RouteConfiguration Build()
         {
-            return new RouteConfiguration
-            {
-                CancellationRouteId = _cancellationRouteId,
-                ReturnRouteIds = _returnRouteIds
-            };
+            return new RouteConfiguration(
+                _returnRouteIds,
+                _cancellationRouteId);
         }
     }
 }

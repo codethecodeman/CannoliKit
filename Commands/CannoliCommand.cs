@@ -15,22 +15,12 @@ namespace CannoliKit.Commands
         /// <inheritdoc/>
         public abstract override DeferralType DeferralType { get; }
 
-        /// <summary>
-        /// The Cannoli client connected to this command.
-        /// </summary>
-        protected CannoliClient CannoliClient { get; private set; } = null!;
-
         /// <inheritdoc/>
         public abstract override ApplicationCommandProperties Build();
 
         internal override async Task Respond(ICannoliDbContext db, DiscordSocketClient discordClient, SocketCommandBase socketCommand)
         {
             await Respond((TContext)db, discordClient, socketCommand);
-        }
-
-        internal override void Setup(CannoliClient cannoliClient)
-        {
-            CannoliClient = cannoliClient;
         }
 
         /// <summary>

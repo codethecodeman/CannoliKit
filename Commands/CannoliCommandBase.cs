@@ -29,8 +29,6 @@ namespace CannoliKit.Commands
         /// <returns>A task representing the asynchronous operation.</returns>
         internal abstract Task Respond(ICannoliDbContext db, DiscordSocketClient discordClient, SocketCommandBase socketCommand);
 
-        internal abstract void Setup(CannoliClient cannoliClient);
-
         /// <summary>
         /// Builds the command's properties for registration with Discord.
         /// </summary>

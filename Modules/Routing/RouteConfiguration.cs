@@ -1,10 +1,21 @@
 ﻿namespace CannoliKit.Modules.Routing
 {
-    public class RouteConfiguration
+    public sealed class RouteConfiguration
     {
-        internal RouteConfiguration() { }
+        internal RouteConfiguration(
+            IReadOnlyDictionary<string, CannoliRouteId> returnRouteIds,
+            CannoliRouteId? cancellationRouteId = null)
+        {
+            ReturnRouteIds = returnRouteIds;
+            CancellationRouteId = cancellationRouteId;
+        }
 
-        internal CannoliRouteId? CancellationRouteId { get; init; }
-        internal Dictionary<string, CannoliRouteId> ReturnRouteIds { get; init; } = [];
+        internal RouteConfiguration()
+        {
+            ReturnRouteIds = new Dictionary<string, CannoliRouteId>();
+        }
+
+        public CannoliRouteId? CancellationRouteId { get; }
+        public IReadOnlyDictionary<string, CannoliRouteId> ReturnRouteIds { get; }
     }
 }

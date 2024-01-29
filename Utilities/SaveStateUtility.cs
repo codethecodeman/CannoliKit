@@ -81,7 +81,7 @@ namespace CannoliKit.Utilities
             if (savedState != null)
             {
                 db.CannoliSaveStates.Remove(savedState);
-                await RouteUtility.RemoveRoutes(db, stateId);
+                await RouteUtility.RemoveRoutes(db, stateId, doForceRemoval: true);
             }
         }
     }

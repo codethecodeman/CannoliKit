@@ -2,7 +2,6 @@
 using CannoliKit.Interfaces;
 using CannoliKit.Registries;
 using CannoliKit.Utilities;
-using CannoliKit.Workers;
 using CannoliKit.Workers.Core;
 using CannoliKit.Workers.Jobs;
 using Discord;
@@ -50,81 +49,99 @@ namespace CannoliKit
         private void SubscribeCommandEvents<TContext>()
             where TContext : DbContext, ICannoliDbContext
         {
-            async Task Enqueue(SocketCommandBase arg)
-            {
-                var command = Commands.GetCommand(arg.CommandName);
-
-                if (command == null) return;
-
-                if (command.DeferralType != DeferralType.None)
-                {
-                    var isEphemeral = command.DeferralType == DeferralType.Ephemeral;
-                    await arg.DeferAsync(ephemeral: isEphemeral);
-                }
-
-                var worker = Workers.GetWorker<DiscordCommandWorker<TContext>>()!;
-
-                worker.EnqueueJob(
-                    new DiscordCommandJob()
-                    {
-                        SocketCommand = arg,
-                    },
-                    (command.DeferralType == DeferralType.None) ? Priority.High : Priority.Normal);
-            }
-
             DiscordClient.SlashCommandExecuted += Enqueue;
             DiscordClient.UserCommandExecuted += Enqueue;
             DiscordClient.MessageCommandExecuted += Enqueue;
+            return;
+
+            async Task Enqueue(SocketCommandBase arg)
+            {
+                _ = Task.Run(async () =>
+                {
+                    var command = Commands.GetCommand(arg.CommandName);
+
+                    if (command == null) return;
+
+                    if (command.DeferralType != DeferralType.None)
+                    {
+                        var isEphemeral = command.DeferralType == DeferralType.Ephemeral;
+                        await arg.DeferAsync(ephemeral: isEphemeral);
+                    }
+
+                    var worker = Workers.GetWorker<DiscordCommandWorker<TContext>>()!;
+
+                    worker.EnqueueJob(
+                        new DiscordCommandJob()
+                        {
+                            SocketCommand = arg,
+                        },
+                        (command.DeferralType == DeferralType.None) ? Priority.High : Priority.Normal);
+                });
+
+                await Task.CompletedTask;
+            }
         }
 
         private void SubscribeMessageComponentEvents<TContext>()
             where TContext : DbContext, ICannoliDbContext
         {
-            async Task Enqueue(SocketMessageComponent arg)
-            {
-                if (RouteUtility.IsValidRouteId(arg.Data.CustomId) == false) return;
-
-                using var db = ((IDbContextFactory<TContext>)DbContextFactory)
-                    .CreateDbContext();
-
-                var route = await RouteUtility.GetRoute(db, RouteType.MessageComponent, arg.Data.CustomId);
-
-                if (route == null || route.Priority == Priority.Normal)
-                {
-                    await arg.DeferAsync();
-                }
-
-                var worker = Workers.GetWorker<DiscordMessageComponentWorker<TContext>>()!;
-
-                worker.EnqueueJob(
-                    new DiscordMessageComponentJob()
-                    {
-                        MessageComponent = arg
-                    },
-                    route?.Priority ?? Priority.Normal);
-            }
-
             DiscordClient.ButtonExecuted += Enqueue;
             DiscordClient.SelectMenuExecuted += Enqueue;
+            return;
+
+            async Task Enqueue(SocketMessageComponent arg)
+            {
+                _ = Task.Run(async () =>
+                {
+                    if (RouteUtility.IsValidRouteId(arg.Data.CustomId) == false) return;
+
+                    using var db = ((IDbContextFactory<TContext>)DbContextFactory)
+                        .CreateDbContext();
+
+                    var route = await RouteUtility.GetRoute(db, RouteType.MessageComponent, arg.Data.CustomId);
+
+                    if (route == null || route.Priority == Priority.Normal)
+                    {
+                        await arg.DeferAsync();
+                    }
+
+                    var worker = Workers.GetWorker<DiscordMessageComponentWorker<TContext>>()!;
+
+                    worker.EnqueueJob(
+                        new DiscordMessageComponentJob()
+                        {
+                            MessageComponent = arg
+                        },
+                        route?.Priority ?? Priority.Normal);
+                });
+
+                await Task.CompletedTask;
+            }
         }
 
         private void SubscribeModalEvents<TContext>() where TContext : DbContext, ICannoliDbContext
         {
+            DiscordClient.ModalSubmitted += Enqueue;
+            return;
+
             async Task Enqueue(SocketModal arg)
             {
-                await arg.DeferAsync();
+                _ = Task.Run(async () =>
+                {
+                    await arg.DeferAsync();
 
-                var worker = Workers.GetWorker<DiscordModalWorker<TContext>>()!;
+                    var worker = Workers.GetWorker<DiscordModalWorker<TContext>>()!;
 
-                worker.EnqueueJob(
-                    new DiscordModalJob()
-                    {
-                        Modal = arg
-                    },
-                    priority: Priority.High);
+                    worker.EnqueueJob(
+                        new DiscordModalJob()
+                        {
+                            Modal = arg
+                        },
+                        priority: Priority.High);
+                });
+
+                await Task.CompletedTask;
             }
-
-            DiscordClient.ModalSubmitted += Enqueue;
         }
 
         private void InitializeWorkers<TContext>()

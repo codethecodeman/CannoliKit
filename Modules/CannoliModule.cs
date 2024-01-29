@@ -17,7 +17,7 @@ namespace CannoliKit.Modules
         protected readonly DiscordSocketClient DiscordClient;
         protected readonly TContext Db;
         protected readonly Pagination.Pagination Pagination;
-        protected readonly RouteFactory RouteFactory;
+        protected readonly RouteManager RouteManager;
         protected readonly Cancellation.CancellationSettings Cancellation;
         protected TState State { get; private set; }
         protected IReadOnlyDictionary<string, CannoliRouteId> ReturnRoutes => State.ReturnRoutes;
@@ -26,7 +26,7 @@ namespace CannoliKit.Modules
         protected CannoliModule(
             TContext db,
             DiscordSocketClient discordClient,
-            RouteConfiguration? routeConfiguration = null)
+            RouteConfiguration? routeConfiguration)
         {
             Db = db;
             DiscordClient = discordClient;
@@ -37,7 +37,7 @@ namespace CannoliKit.Modules
                 Db = Db
             };
 
-            RouteFactory = new RouteFactory(Db, GetType(), State);
+            RouteManager = new RouteManager(Db, GetType(), State);
             Cancellation = new Cancellation.CancellationSettings(State);
 
             if (routeConfiguration?.CancellationRouteId != null)
@@ -124,26 +124,6 @@ namespace CannoliKit.Modules
                 componentBuilder?.Build());
         }
 
-        internal async Task LoadModuleState(string stateId)
-        {
-            var state = await SaveStateUtility.GetState<TState>(
-                Db,
-                stateId);
-
-            if (state == null) return;
-
-            state.Db = Db;
-
-            state.InfoMessage = null;
-            state.ErrorMessage = null;
-
-            State = state;
-            Cancellation.State = state;
-            RouteFactory.State = state;
-
-            await LoadReturnRoutes();
-        }
-
         protected abstract Task<CannoliModuleParts> SetupModule();
 
         protected async Task UpdateModule(SocketMessageComponent messageComponent)
@@ -160,7 +140,27 @@ namespace CannoliKit.Modules
         {
             if (State.IsExpiringNow) return;
             await State.Save();
-            RouteFactory.AddRoutes();
+            RouteManager.AddRoutes();
+        }
+
+        internal async Task LoadModuleState(string stateId)
+        {
+            var state = await SaveStateUtility.GetState<TState>(
+                Db,
+                stateId);
+
+            if (state == null) return;
+
+            state.Db = Db;
+
+            state.InfoMessage = null;
+            state.ErrorMessage = null;
+
+            State = state;
+            Cancellation.State = state;
+            RouteManager.State = state;
+
+            await LoadReturnRoutes();
         }
 
         internal async Task OnModulePageChanged(SocketMessageComponent messageComponent, CannoliRoute route)
@@ -186,7 +186,7 @@ namespace CannoliKit.Modules
 
             rowBuilder.WithButton(new ButtonBuilder()
             {
-                CustomId = await RouteFactory.CreateMessageComponentRoute(
+                CustomId = await RouteManager.CreateMessageComponentRoute(
                     callback: OnModulePageChanged,
                     parameter1: (Pagination.PageNumber - 1).ToString()),
                 Emote = Emoji.Parse("⬅️"),
@@ -195,7 +195,7 @@ namespace CannoliKit.Modules
 
             rowBuilder.WithButton(new ButtonBuilder()
             {
-                CustomId = await RouteFactory.CreateMessageComponentRoute(
+                CustomId = await RouteManager.CreateMessageComponentRoute(
                     callback: OnModulePageChanged,
                     parameter1: (Pagination.PageNumber + 1).ToString()),
                 Emote = Emoji.Parse("➡️"),
@@ -227,7 +227,7 @@ namespace CannoliKit.Modules
 
             var cancellationRoute = Cancellation.HasCustomRouting
                 ? Cancellation.Route!
-                : await RouteFactory.CreateMessageComponentRoute(
+                : await RouteManager.CreateMessageComponentRoute(
                     routeName: DefaultCancelRouteName,
                     callback: OnModuleCancelled);
 

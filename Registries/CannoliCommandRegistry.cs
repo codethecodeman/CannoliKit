@@ -18,8 +18,6 @@ namespace CannoliKit.Registries
         public void Add(CannoliCommandBase command)
         {
             if (_commands.ContainsKey(command.GetType())) return;
-
-            command.Setup(_cannoliClient);
             _commands[command.GetType()] = command;
         }
 

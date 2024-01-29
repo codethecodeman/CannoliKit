@@ -6,13 +6,15 @@ namespace CannoliKit.Modules.Pagination
     public sealed class Pagination
     {
         public bool IsEnabled { get; set; }
-        public int NumItemsPerField { get; set; }
-        public int NumItemsPerPage { get; set; }
-        public int NumItemsPerRow { get; set; }
+        public int NumItemsPerField { get; set; } = 10;
+        public int NumItemsPerPage { get; set; } = 10;
+        public int NumItemsPerRow { get; set; } = 1;
         public int NumItems { get; private set; }
         public int NumPages { get; private set; }
         public int PageNumber { get; internal set; }
         private int ListStartIndex { get; set; }
+
+        private bool _isSetup;
 
         internal Pagination() { }
 
@@ -34,10 +36,14 @@ namespace CannoliKit.Modules.Pagination
             }
 
             ListStartIndex = NumItemsPerPage * PageNumber;
+
+            _isSetup = true;
         }
 
         public List<EmbedFieldBuilder> GetEmbedFieldBuilders(List<string> items)
         {
+            EnsureSettingsExist();
+
             var numRows = (int)Math.Ceiling((double)items.Count / NumItemsPerRow);
             var rowContents = new List<string>();
             var sb = new StringBuilder();
@@ -87,6 +93,8 @@ namespace CannoliKit.Modules.Pagination
 
         public List<ListItem<TItem>> GetListItems<TItem>(List<TItem> items, ListType? listType = null, bool resetListCounterBetweenPages = false)
         {
+            EnsureSettingsExist();
+
             var pagedItems = new List<ListItem<TItem>>();
 
             for (var i = ListStartIndex; i < ListStartIndex + NumItemsPerPage; i++)
@@ -121,6 +129,21 @@ namespace CannoliKit.Modules.Pagination
             }
 
             return pagedItems;
+        }
+
+        private void EnsureSettingsExist()
+        {
+            if (IsEnabled == false)
+            {
+                throw new InvalidOperationException(
+                    "Pagination must be enabled prior to using this method");
+            }
+
+            if (_isSetup == false)
+            {
+                throw new InvalidOperationException(
+                    "Pagination must be set up prior to using this method");
+            }
         }
 
         private static string IntToLetters(int value)
