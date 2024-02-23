@@ -9,28 +9,38 @@ using Timer = System.Timers.Timer;
 
 namespace CannoliKit.Workers
 {
-    public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase, IDisposable where TContext : DbContext, ICannoliDbContext
+    public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase, IDisposable
+        where TContext : DbContext, ICannoliDbContext
     {
         protected readonly int MaxConcurrentTaskCount;
         protected CannoliClient CannoliClient { get; private set; } = null!;
-        private readonly PriorityChannel<TJob> _taskChannel;
+        private readonly ICannoliWorkerChannel<TJob> _channel;
         private readonly SemaphoreSlim _taskSemaphore;
         private readonly ConcurrentBag<Timer> _repeatingWorkTimers;
         private bool _isRunning, _isDisposed;
 
         protected CannoliWorker(int maxConcurrentTaskCount)
         {
+            _channel = new PriorityChannel<TJob>();
+
             MaxConcurrentTaskCount = maxConcurrentTaskCount;
-
-            _taskChannel = new PriorityChannel<TJob>();
-
             _isRunning = false;
-
             _isDisposed = false;
-
             _taskSemaphore = new SemaphoreSlim(MaxConcurrentTaskCount, MaxConcurrentTaskCount);
+            _repeatingWorkTimers = [];
 
-            _repeatingWorkTimers = new ConcurrentBag<Timer>();
+            Task.Run(InitializeTaskQueue);
+        }
+
+        internal CannoliWorker(int maxConcurrentTaskCount, ICannoliWorkerChannel<TJob> channel)
+        {
+            _channel = channel;
+
+            MaxConcurrentTaskCount = maxConcurrentTaskCount;
+            _isRunning = false;
+            _isDisposed = false;
+            _taskSemaphore = new SemaphoreSlim(MaxConcurrentTaskCount, MaxConcurrentTaskCount);
+            _repeatingWorkTimers = [];
 
             Task.Run(InitializeTaskQueue);
         }
@@ -43,7 +53,7 @@ namespace CannoliKit.Workers
 
         public void EnqueueJob(TJob item, Priority priority = Priority.Normal)
         {
-            _taskChannel.Write(item, priority);
+            _channel.Write(item, priority);
         }
 
         private async Task InitializeTaskQueue()
@@ -61,7 +71,7 @@ namespace CannoliKit.Workers
 
                 try
                 {
-                    item = await _taskChannel.ReadAsync();
+                    item = await _channel.ReadAsync();
                 }
                 catch (InvalidOperationException)
                 {
@@ -107,7 +117,7 @@ namespace CannoliKit.Workers
                 await EmitLog(new LogMessage(
                     LogSeverity.Error,
                     GetType().Name,
-                    ex.ToString(),
+                    ex.Message,
                     ex));
             }
         }
@@ -152,7 +162,7 @@ namespace CannoliKit.Workers
             }
 
             _repeatingWorkTimers.Clear();
-            _taskChannel.Dispose();
+            _channel.Dispose();
             GC.SuppressFinalize(this);
         }
     }

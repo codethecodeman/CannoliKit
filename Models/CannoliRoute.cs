@@ -32,6 +32,8 @@ namespace CannoliKit.Models
 
         public string? StateIdToBeDeleted { get; set; } = null!;
 
+        public bool IsSynchronous { get; set; }
+
         [Required]
         public Priority Priority { get; set; }
 

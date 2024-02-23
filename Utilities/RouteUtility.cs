@@ -134,32 +134,17 @@ namespace CannoliKit.Utilities
 
             var isCallbackSequential = callbackMethodInfo.GetCustomAttributes(typeof(SequentialExecutionAttribute), inherit: true).Length != 0;
 
-            SemaphoreSlim? semaphore = null;
+            var target = Activator.CreateInstance(classType, [db, discordClient, null]);
 
-            if (isCallbackSequential)
-            {
-                semaphore = _sequentialExecutionLocks.GetOrAdd(route.StateId, new SemaphoreSlim(1, 1));
+            var loadStateTask = (Task)loadStateMethodInfo.Invoke(target, [route.StateId])!;
+            await loadStateTask;
 
-                await semaphore.WaitAsync();
-            }
+            var callbackTask = (Task)callbackMethodInfo.Invoke(target, [parameter, route])!;
+            await callbackTask;
 
-            try
-            {
-                var target = Activator.CreateInstance(classType, [db, discordClient, null]);
+            var saveStateTask = (Task)saveStateMethodInfo.Invoke(target, null)!;
+            await saveStateTask;
 
-                var loadStateTask = (Task)loadStateMethodInfo.Invoke(target, [route.StateId])!;
-                await loadStateTask;
-
-                var callbackTask = (Task)callbackMethodInfo.Invoke(target, [parameter, route])!;
-                await callbackTask;
-
-                var saveStateTask = (Task)saveStateMethodInfo.Invoke(target, null)!;
-                await saveStateTask;
-            }
-            finally
-            {
-                semaphore?.Release();
-            }
         }
     }
 }

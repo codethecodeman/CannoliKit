@@ -1,5 +1,6 @@
 ﻿using CannoliKit.Enums;
 using CannoliKit.Interfaces;
+using CannoliKit.Models;
 using CannoliKit.Registries;
 using CannoliKit.Utilities;
 using CannoliKit.Workers.Core;
@@ -93,26 +94,7 @@ namespace CannoliKit
             {
                 _ = Task.Run(async () =>
                 {
-                    if (RouteUtility.IsValidRouteId(arg.Data.CustomId) == false) return;
-
-                    using var db = ((IDbContextFactory<TContext>)DbContextFactory)
-                        .CreateDbContext();
-
-                    var route = await RouteUtility.GetRoute(db, RouteType.MessageComponent, arg.Data.CustomId);
-
-                    if (route == null || route.Priority == Priority.Normal)
-                    {
-                        await arg.DeferAsync();
-                    }
-
-                    var worker = Workers.GetWorker<DiscordMessageComponentWorker<TContext>>()!;
-
-                    worker.EnqueueJob(
-                        new DiscordMessageComponentJob()
-                        {
-                            MessageComponent = arg
-                        },
-                        route?.Priority ?? Priority.Normal);
+                    await EnqueueModuleEvent<TContext>(arg);
                 });
 
                 await Task.CompletedTask;
@@ -128,20 +110,67 @@ namespace CannoliKit
             {
                 _ = Task.Run(async () =>
                 {
-                    await arg.DeferAsync();
-
-                    var worker = Workers.GetWorker<DiscordModalWorker<TContext>>()!;
-
-                    worker.EnqueueJob(
-                        new DiscordModalJob()
-                        {
-                            Modal = arg
-                        },
-                        priority: Priority.High);
+                    await EnqueueModuleEvent<TContext>(arg);
                 });
 
                 await Task.CompletedTask;
             }
+        }
+
+        private async Task EnqueueModuleEvent<TContext>(SocketMessageComponent arg)
+            where TContext : DbContext, ICannoliDbContext
+        {
+            var route = await GetRoute<TContext>(arg.Data.CustomId);
+
+            if (route == null) return;
+
+            if (route.Priority == Priority.Normal)
+            {
+                await arg.DeferAsync();
+            }
+
+            await EnqueueModuleEvent<TContext>(new CannoliModuleEventJob
+            {
+                Route = route,
+                SocketMessageComponent = arg
+            });
+        }
+
+        private async Task EnqueueModuleEvent<TContext>(SocketModal arg)
+            where TContext : DbContext, ICannoliDbContext
+        {
+            var route = await GetRoute<TContext>(arg.Data.CustomId);
+
+            if (route == null) return;
+
+            await EnqueueModuleEvent<TContext>(new CannoliModuleEventJob
+            {
+                Route = route,
+                SocketModal = arg
+            });
+        }
+
+        private async Task EnqueueModuleEvent<TContext>(CannoliModuleEventJob cannoliModuleEventJob)
+            where TContext : DbContext, ICannoliDbContext
+        {
+            var worker = Workers.GetWorker<CannoliModuleEventWorker<TContext>>()!;
+
+            worker.EnqueueJob(
+                cannoliModuleEventJob,
+                cannoliModuleEventJob.Route.Priority);
+
+            await Task.CompletedTask;
+        }
+
+        private async Task<CannoliRoute?> GetRoute<TContext>(string customId)
+            where TContext : DbContext, ICannoliDbContext
+        {
+            if (RouteUtility.IsValidRouteId(customId) == false) return null;
+
+            using var db = ((IDbContextFactory<TContext>)DbContextFactory)
+                .CreateDbContext();
+
+            return await RouteUtility.GetRoute(db, RouteType.MessageComponent, customId);
         }
 
         private void InitializeWorkers<TContext>()
@@ -150,10 +179,7 @@ namespace CannoliKit
             Workers.Add(new DiscordCommandWorker<TContext>(
                 maxConcurrentTaskCount: int.MaxValue));
 
-            Workers.Add(new DiscordMessageComponentWorker<TContext>(
-                maxConcurrentTaskCount: int.MaxValue));
-
-            Workers.Add(new DiscordModalWorker<TContext>(
+            Workers.Add(new CannoliModuleEventWorker<TContext>(
                 maxConcurrentTaskCount: int.MaxValue));
 
             var stateCleanupWorker = new CannoliCleanupWorker<TContext>(

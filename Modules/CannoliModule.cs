@@ -1,4 +1,5 @@
-﻿using CannoliKit.Extensions;
+﻿using CannoliKit.Exceptions;
+using CannoliKit.Extensions;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
 using CannoliKit.Modules.Routing;
@@ -149,7 +150,11 @@ namespace CannoliKit.Modules
                 Db,
                 stateId);
 
-            if (state == null) return;
+            if (state == null)
+            {
+                throw new ModuleStateNotFoundException(
+                    $"Unable to find module state {stateId}");
+            }
 
             state.Db = Db;
 

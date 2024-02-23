@@ -23,6 +23,7 @@ namespace CannoliKit.Utilities
         }
 
         internal static async Task<T?> GetState<T>(ICannoliDbContext db, string stateId)
+            where T : class
         {
             var savedState = await db.CannoliSaveStates
                 .Where(g => g.Id == stateId)
@@ -32,7 +33,7 @@ namespace CannoliKit.Utilities
 
             if (savedState == null)
             {
-                return default;
+                return null;
             }
 
             var deserializedEntry = JsonSerializer.Deserialize<T>(

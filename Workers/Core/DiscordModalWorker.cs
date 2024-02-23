@@ -29,7 +29,7 @@ namespace CannoliKit.Workers.Core
                 await EmitLog(new LogMessage(
                     LogSeverity.Error,
                     GetType().Name,
-                    ex.ToString(),
+                    ex.Message,
                     ex));
             }
         }

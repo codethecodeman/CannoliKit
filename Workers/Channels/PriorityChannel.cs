@@ -1,9 +1,10 @@
 ﻿using CannoliKit.Enums;
+using CannoliKit.Interfaces;
 using System.Threading.Channels;
 
 namespace CannoliKit.Workers.Channels
 {
-    internal sealed class PriorityChannel<T> : IDisposable
+    internal sealed class PriorityChannel<T> : ICannoliWorkerChannel<T>, IDisposable
     {
         private readonly Channel<T> _highPriorityChannel;
         private readonly Channel<T> _normalPriorityChannel;
@@ -29,7 +30,7 @@ namespace CannoliKit.Workers.Channels
             }
         }
 
-        internal async ValueTask<T> ReadAsync()
+        public async Task<T> ReadAsync()
         {
             while (true)
             {
