@@ -47,6 +47,13 @@ namespace CannoliKit
             SubscribeModalEvents<TContext>();
         }
 
+        public TContext GetDbContext<TContext>()
+            where TContext : DbContext, ICannoliDbContext
+        {
+            var dbContextFactory = (IDbContextFactory<TContext>)CannoliClient.DbContextFactory;
+            return dbContextFactory.CreateDbContext();
+        }
+
         private void SubscribeCommandEvents<TContext>()
             where TContext : DbContext, ICannoliDbContext
         {

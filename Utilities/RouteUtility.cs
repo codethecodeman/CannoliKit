@@ -1,5 +1,4 @@
-﻿using CannoliKit.Attributes;
-using CannoliKit.Enums;
+﻿using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
 using Discord.WebSocket;
@@ -63,6 +62,7 @@ namespace CannoliKit.Utilities
             string callbackMethod,
             string stateId,
             Priority priority,
+            bool isSynchronous,
             string? routeName = null,
             string? parameter1 = null,
             string? parameter2 = null,
@@ -84,6 +84,7 @@ namespace CannoliKit.Utilities
                 CallbackMethod = callbackMethod,
                 StateId = stateId,
                 Priority = priority,
+                IsSynchronous = isSynchronous,
                 Parameter1 = parameter1,
                 Parameter2 = parameter2,
                 Parameter3 = parameter3,
@@ -131,8 +132,6 @@ namespace CannoliKit.Utilities
             var callbackMethodInfo = ReflectionUtility.GetMethodInfo(classType, route.CallbackMethod)!;
             var loadStateMethodInfo = ReflectionUtility.GetMethodInfo(classType, "LoadModuleState")!;
             var saveStateMethodInfo = ReflectionUtility.GetMethodInfo(classType, "SaveModuleState")!;
-
-            var isCallbackSequential = callbackMethodInfo.GetCustomAttributes(typeof(SequentialExecutionAttribute), inherit: true).Length != 0;
 
             var target = Activator.CreateInstance(classType, [db, discordClient, null]);
 

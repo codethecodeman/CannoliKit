@@ -2,7 +2,7 @@
 namespace CannoliKit.Attributes
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public sealed class SequentialExecutionAttribute : Attribute
+    public sealed class ParallelExecutionAttribute : Attribute
     {
     }
 }

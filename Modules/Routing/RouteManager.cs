@@ -1,4 +1,5 @@
-﻿using CannoliKit.Enums;
+﻿using CannoliKit.Attributes;
+using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
 using CannoliKit.Modules.States;
@@ -75,6 +76,10 @@ namespace CannoliKit.Modules.Routing
             string? parameter2 = null,
             string? parameter3 = null)
         {
+            var isSynchronous = methodInfo
+                .GetCustomAttributes(typeof(ParallelExecutionAttribute), inherit: true)
+                .Length == 0;
+
             var route = await RouteUtility.CreateRoute(
                 db: _db,
                 routeType: routeType,
@@ -82,6 +87,7 @@ namespace CannoliKit.Modules.Routing
                 callbackMethod: methodInfo.Name,
                 stateId: State.Id,
                 priority: priority,
+                isSynchronous: isSynchronous,
                 routeName: routeName,
                 parameter1: parameter1,
                 parameter2: parameter2,
