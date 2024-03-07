@@ -25,21 +25,6 @@ namespace CannoliKit.Utilities
                     m.Id == id);
         }
 
-        internal static async Task<CannoliRoute?> GetRoute(ICannoliDbContext db, RouteType routeType, string id)
-        {
-            var route = db.CannoliRoutes.Local
-                .FirstOrDefault(m =>
-                    m.Type == routeType
-                    && m.Id == id);
-
-            if (route != null) return route;
-
-            return await db.CannoliRoutes
-                .FirstOrDefaultAsync(m =>
-                    m.Type == routeType
-                    && m.Id == id);
-        }
-
         internal static async Task<CannoliRoute?> GetRoute(ICannoliDbContext db, string stateId, string routeName)
         {
             var route = db.CannoliRoutes.Local
@@ -61,8 +46,8 @@ namespace CannoliKit.Utilities
             string callbackType,
             string callbackMethod,
             string stateId,
-            Priority priority,
             bool isSynchronous,
+            bool isDeferred,
             string? routeName = null,
             string? parameter1 = null,
             string? parameter2 = null,
@@ -83,8 +68,8 @@ namespace CannoliKit.Utilities
                 CallbackType = callbackType,
                 CallbackMethod = callbackMethod,
                 StateId = stateId,
-                Priority = priority,
                 IsSynchronous = isSynchronous,
+                IsDeferred = isDeferred,
                 Parameter1 = parameter1,
                 Parameter2 = parameter2,
                 Parameter3 = parameter3,

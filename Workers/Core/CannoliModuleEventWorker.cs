@@ -38,7 +38,7 @@ namespace CannoliKit.Workers.Core
                 return;
             }
 
-            _ = EnqueueItem(db, discordClient, item, paramToPass);
+            _ = EnqueueItem(item, paramToPass);
 
             await Task.CompletedTask;
         }
@@ -56,7 +56,7 @@ namespace CannoliKit.Workers.Core
             await db.SaveChangesAsync();
         }
 
-        private async Task EnqueueItem(TContext db, DiscordSocketClient discordClient, CannoliModuleEventJob item, object paramToPass)
+        private async Task EnqueueItem(CannoliModuleEventJob item, object paramToPass)
         {
             var thisTurn = new TaskCompletionSource<bool>();
 

@@ -136,13 +136,13 @@ namespace CannoliKit.Modules.Pagination
             if (IsEnabled == false)
             {
                 throw new InvalidOperationException(
-                    "Pagination must be enabled prior to using this method");
+                    "Pagination must be enabled prior to use this feature");
             }
 
             if (_isSetup == false)
             {
                 throw new InvalidOperationException(
-                    "Pagination must be set up prior to using this method");
+                    "Pagination must be set up prior to use this feature");
             }
         }
 

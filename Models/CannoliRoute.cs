@@ -30,12 +30,13 @@ namespace CannoliKit.Models
         [ForeignKey(nameof(StateId))]
         public CannoliSaveState CannoliSaveState { get; set; } = null!;
 
-        public string? StateIdToBeDeleted { get; set; } = null!;
-
+        [Required]
         public bool IsSynchronous { get; set; }
 
         [Required]
-        public Priority Priority { get; set; }
+        public bool IsDeferred { get; set; }
+
+        public string? StateIdToBeDeleted { get; set; } = null!;
 
         public string? Parameter1 { get; set; }
 

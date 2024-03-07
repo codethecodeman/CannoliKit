@@ -50,7 +50,7 @@ namespace CannoliKit
         public TContext GetDbContext<TContext>()
             where TContext : DbContext, ICannoliDbContext
         {
-            var dbContextFactory = (IDbContextFactory<TContext>)CannoliClient.DbContextFactory;
+            var dbContextFactory = (IDbContextFactory<TContext>)DbContextFactory;
             return dbContextFactory.CreateDbContext();
         }
 
@@ -131,7 +131,7 @@ namespace CannoliKit
 
             if (route == null) return;
 
-            if (route.Priority == Priority.Normal)
+            if (route.IsDeferred)
             {
                 await arg.DeferAsync();
             }
@@ -150,6 +150,8 @@ namespace CannoliKit
 
             if (route == null) return;
 
+            await arg.DeferAsync();
+
             await EnqueueModuleEvent<TContext>(new CannoliModuleEventJob
             {
                 Route = route,
@@ -163,8 +165,7 @@ namespace CannoliKit
             var worker = Workers.GetWorker<CannoliModuleEventWorker<TContext>>()!;
 
             worker.EnqueueJob(
-                cannoliModuleEventJob,
-                cannoliModuleEventJob.Route.Priority);
+                cannoliModuleEventJob);
 
             await Task.CompletedTask;
         }
@@ -177,7 +178,7 @@ namespace CannoliKit
             using var db = ((IDbContextFactory<TContext>)DbContextFactory)
                 .CreateDbContext();
 
-            return await RouteUtility.GetRoute(db, RouteType.MessageComponent, customId);
+            return await RouteUtility.GetRoute(db, customId);
         }
 
         private void InitializeWorkers<TContext>()

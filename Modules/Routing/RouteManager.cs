@@ -24,13 +24,13 @@ namespace CannoliKit.Modules.Routing
         {
             _db = db;
             _type = type;
-            _routesToAdd = new List<CannoliRoute>();
+            _routesToAdd = [];
             State = state;
         }
 
         public async Task<CannoliRouteId> CreateMessageComponentRoute(
             MessageComponentCallback callback,
-            Priority priority = Priority.Normal,
+            bool isDeferred = true,
             string? routeName = null,
             string? parameter1 = null,
             string? parameter2 = null,
@@ -39,7 +39,7 @@ namespace CannoliKit.Modules.Routing
             var route = await CreateRoute(
                 callback.Method,
                 RouteType.MessageComponent,
-                priority,
+                isDeferred,
                 routeName,
                 parameter1,
                 parameter2,
@@ -58,7 +58,7 @@ namespace CannoliKit.Modules.Routing
             var route = await CreateRoute(
                 callback.Method,
                 RouteType.Modal,
-                Priority.High,
+                false,
                 routeName,
                 parameter1,
                 parameter2,
@@ -70,7 +70,7 @@ namespace CannoliKit.Modules.Routing
         private async Task<CannoliRoute> CreateRoute(
             MemberInfo methodInfo,
             RouteType routeType,
-            Priority priority,
+            bool isDeferred,
             string? routeName = null,
             string? parameter1 = null,
             string? parameter2 = null,
@@ -86,9 +86,9 @@ namespace CannoliKit.Modules.Routing
                 callbackType: _type.AssemblyQualifiedName!,
                 callbackMethod: methodInfo.Name,
                 stateId: State.Id,
-                priority: priority,
                 isSynchronous: isSynchronous,
                 routeName: routeName,
+                isDeferred: isDeferred,
                 parameter1: parameter1,
                 parameter2: parameter2,
                 parameter3: parameter3);
