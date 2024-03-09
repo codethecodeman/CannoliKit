@@ -18,7 +18,7 @@ namespace CannoliKit.Modules.Cancellation
             State = state;
         }
 
-        internal void SetRoute(CannoliRouteId routeId)
+        public void SetRoute(CannoliRouteId routeId)
         {
             State.CancelRoute = routeId;
         }

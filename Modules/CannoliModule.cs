@@ -140,6 +140,7 @@ namespace CannoliKit.Modules
         internal async Task SaveModuleState()
         {
             if (State.IsExpiringNow) return;
+            if (State.IsSaved) return;
             await State.Save();
             RouteManager.AddRoutes();
         }

@@ -18,7 +18,7 @@ namespace CannoliKit.Modules.Pagination
 
         internal Pagination() { }
 
-        public void Setup(int itemCount)
+        public void SetItemCount(int itemCount)
         {
             NumItems = itemCount;
             NumPages = (int)Math.Ceiling((double)NumItems / NumItemsPerPage);
@@ -136,13 +136,13 @@ namespace CannoliKit.Modules.Pagination
             if (IsEnabled == false)
             {
                 throw new InvalidOperationException(
-                    "Pagination must be enabled prior to use this feature");
+                    "Pagination must be enabled prior to using this feature");
             }
 
             if (_isSetup == false)
             {
                 throw new InvalidOperationException(
-                    "Pagination must be set up prior to use this feature");
+                    "Pagination item count must be set prior to using this feature");
             }
         }
 

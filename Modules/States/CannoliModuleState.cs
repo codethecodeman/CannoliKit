@@ -23,6 +23,7 @@ namespace CannoliKit.Modules.States
 
         internal ICannoliDbContext Db { get; set; } = null!;
         internal bool IsExpiringNow;
+        internal bool IsSaved;
 
         /// <summary>
         /// Remove the state from the database.
@@ -36,6 +37,7 @@ namespace CannoliKit.Modules.States
         internal async Task Save()
         {
             await SaveStateUtility.AddOrUpdateState(Db, Id, this, ExpiresOn);
+            IsSaved = true;
         }
     }
 }
