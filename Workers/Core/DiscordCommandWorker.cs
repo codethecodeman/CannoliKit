@@ -6,7 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CannoliKit.Workers.Core
 {
-    internal sealed class DiscordCommandWorker<TContext> : CannoliWorker<TContext, DiscordCommandJob> where TContext : DbContext, ICannoliDbContext
+    internal sealed class DiscordCommandWorker<TContext> : CannoliWorker<TContext, DiscordCommandJob>
+        where TContext : DbContext, ICannoliDbContext
     {
         internal DiscordCommandWorker(int maxConcurrentTaskCount) : base(maxConcurrentTaskCount)
         {
@@ -25,7 +26,7 @@ namespace CannoliKit.Workers.Core
 
             if (command == null) return;
 
-            await command.Respond(db, CannoliClient.DiscordClient, item.SocketCommand);
+            await command.RespondInternal(db, CannoliClient.DiscordClient, item.SocketCommand);
         }
     }
 }

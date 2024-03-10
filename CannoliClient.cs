@@ -11,51 +11,40 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CannoliKit
 {
-    public class CannoliClient
+    public class CannoliClient<TContext>
+    where TContext : DbContext, ICannoliDbContext
     {
         public delegate Task LogEventHandler(LogMessage e);
         public event LogEventHandler? Log;
-        public CannoliWorkerRegistry Workers { get; }
-        public CannoliCommandRegistry Commands { get; }
-        public DiscordSocketClient DiscordClient { get; init; }
-        internal object DbContextFactory { get; private set; } = null!;
+        public CannoliWorkerRegistry<TContext> Workers { get; }
+        public CannoliCommandRegistry<TContext> Commands { get; }
+        public DiscordSocketClient DiscordClient { get; private set; } = null!;
+        internal IDbContextFactory<TContext> DbContextFactory { get; private set; } = null!;
 
-        /// <summary>
-        /// Initializes a new Cannoli client with the provided Discord client.
-        /// </summary>
-        /// <param name="discordClient"></param>
-        public CannoliClient(DiscordSocketClient discordClient)
+        public CannoliClient()
+        {
+            Workers = new CannoliWorkerRegistry<TContext>(this);
+            Commands = new CannoliCommandRegistry<TContext>(this);
+        }
+
+        public void Setup(
+            DiscordSocketClient discordClient,
+            IDbContextFactory<TContext> dbContextFactory)
         {
             DiscordClient = discordClient;
-            Workers = new CannoliWorkerRegistry(this);
-            Commands = new CannoliCommandRegistry(this);
-        }
-
-        /// <summary>
-        /// Sets up the Cannoli client with the provided DbContextFactory.
-        /// </summary>
-        /// <typeparam name="TContext">A DbContext type which implements ICannoliDbContext.</typeparam>
-        /// <param name="dbContextFactory">The DbContextFactory to use for the Cannoli client.</param>
-        public void Setup<TContext>(
-            IDbContextFactory<TContext> dbContextFactory)
-            where TContext : DbContext, ICannoliDbContext
-        {
             DbContextFactory = dbContextFactory;
-            InitializeWorkers<TContext>();
-            SubscribeCommandEvents<TContext>();
-            SubscribeMessageComponentEvents<TContext>();
-            SubscribeModalEvents<TContext>();
+            InitializeWorkers();
+            SubscribeCommandEvents();
+            SubscribeMessageComponentEvents();
+            SubscribeModalEvents();
         }
 
-        public TContext GetDbContext<TContext>()
-            where TContext : DbContext, ICannoliDbContext
+        public TContext GetDbContext()
         {
-            var dbContextFactory = (IDbContextFactory<TContext>)DbContextFactory;
-            return dbContextFactory.CreateDbContext();
+            return DbContextFactory.CreateDbContext();
         }
 
-        private void SubscribeCommandEvents<TContext>()
-            where TContext : DbContext, ICannoliDbContext
+        private void SubscribeCommandEvents()
         {
             DiscordClient.SlashCommandExecuted += Enqueue;
             DiscordClient.UserCommandExecuted += Enqueue;
@@ -90,8 +79,7 @@ namespace CannoliKit
             }
         }
 
-        private void SubscribeMessageComponentEvents<TContext>()
-            where TContext : DbContext, ICannoliDbContext
+        private void SubscribeMessageComponentEvents()
         {
             DiscordClient.ButtonExecuted += Enqueue;
             DiscordClient.SelectMenuExecuted += Enqueue;
@@ -101,14 +89,14 @@ namespace CannoliKit
             {
                 _ = Task.Run(async () =>
                 {
-                    await EnqueueModuleEvent<TContext>(arg);
+                    await EnqueueModuleEvent(arg);
                 });
 
                 await Task.CompletedTask;
             }
         }
 
-        private void SubscribeModalEvents<TContext>() where TContext : DbContext, ICannoliDbContext
+        private void SubscribeModalEvents()
         {
             DiscordClient.ModalSubmitted += Enqueue;
             return;
@@ -117,17 +105,16 @@ namespace CannoliKit
             {
                 _ = Task.Run(async () =>
                 {
-                    await EnqueueModuleEvent<TContext>(arg);
+                    await EnqueueModuleEvent(arg);
                 });
 
                 await Task.CompletedTask;
             }
         }
 
-        private async Task EnqueueModuleEvent<TContext>(SocketMessageComponent arg)
-            where TContext : DbContext, ICannoliDbContext
+        private async Task EnqueueModuleEvent(SocketMessageComponent arg)
         {
-            var route = await GetRoute<TContext>(arg.Data.CustomId);
+            var route = await GetRoute(arg.Data.CustomId);
 
             if (route == null) return;
 
@@ -136,31 +123,29 @@ namespace CannoliKit
                 await arg.DeferAsync();
             }
 
-            await EnqueueModuleEvent<TContext>(new CannoliModuleEventJob
+            await EnqueueModuleEvent(new CannoliModuleEventJob
             {
                 Route = route,
                 SocketMessageComponent = arg
             });
         }
 
-        private async Task EnqueueModuleEvent<TContext>(SocketModal arg)
-            where TContext : DbContext, ICannoliDbContext
+        private async Task EnqueueModuleEvent(SocketModal arg)
         {
-            var route = await GetRoute<TContext>(arg.Data.CustomId);
+            var route = await GetRoute(arg.Data.CustomId);
 
             if (route == null) return;
 
             await arg.DeferAsync();
 
-            await EnqueueModuleEvent<TContext>(new CannoliModuleEventJob
+            await EnqueueModuleEvent(new CannoliModuleEventJob
             {
                 Route = route,
                 SocketModal = arg
             });
         }
 
-        private async Task EnqueueModuleEvent<TContext>(CannoliModuleEventJob cannoliModuleEventJob)
-            where TContext : DbContext, ICannoliDbContext
+        private async Task EnqueueModuleEvent(CannoliModuleEventJob cannoliModuleEventJob)
         {
             var worker = Workers.GetWorker<CannoliModuleEventWorker<TContext>>()!;
 
@@ -170,19 +155,16 @@ namespace CannoliKit
             await Task.CompletedTask;
         }
 
-        private async Task<CannoliRoute?> GetRoute<TContext>(string customId)
-            where TContext : DbContext, ICannoliDbContext
+        private async Task<CannoliRoute?> GetRoute(string customId)
         {
             if (RouteUtility.IsValidRouteId(customId) == false) return null;
 
-            using var db = ((IDbContextFactory<TContext>)DbContextFactory)
-                .CreateDbContext();
+            await using var db = GetDbContext();
 
             return await RouteUtility.GetRoute(db, customId);
         }
 
-        private void InitializeWorkers<TContext>()
-            where TContext : DbContext, ICannoliDbContext
+        private void InitializeWorkers()
         {
             Workers.Add(new DiscordCommandWorker<TContext>(
                 maxConcurrentTaskCount: int.MaxValue));

@@ -2,13 +2,15 @@
 using CannoliKit.Interfaces;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
 
 namespace CannoliKit.Commands
 {
     /// <summary>
     /// Represents a Discord command within Cannoli.
     /// </summary>
-    public abstract class CannoliCommandBase
+    public abstract class CannoliCommandBase<TContext>
+    where TContext : DbContext, ICannoliDbContext
     {
         /// <summary>
         /// Gets the name of the command. This should be unique for each command.
@@ -27,7 +29,12 @@ namespace CannoliKit.Commands
         /// <param name="discordClient">The Discord client instance.</param>
         /// <param name="socketCommand">The socket command from the Discord event that triggered the response.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        internal abstract Task Respond(ICannoliDbContext db, DiscordSocketClient discordClient, SocketCommandBase socketCommand);
+        protected abstract Task Respond(TContext db, DiscordSocketClient discordClient, SocketCommandBase socketCommand);
+
+        internal async Task RespondInternal(TContext db, DiscordSocketClient discordClient, SocketCommandBase socketCommand)
+        {
+            await Respond(db, discordClient, socketCommand);
+        }
 
         /// <summary>
         /// Builds the command's properties for registration with Discord.

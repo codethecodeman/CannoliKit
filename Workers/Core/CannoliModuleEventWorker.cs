@@ -45,7 +45,7 @@ namespace CannoliKit.Workers.Core
 
         private async Task ProcessRoute(CannoliRoute route, object paramToPass)
         {
-            await using var db = CannoliClient.GetDbContext<TContext>();
+            await using var db = CannoliClient.GetDbContext();
 
             await RouteUtility.RouteToModuleCallback(
                 db,

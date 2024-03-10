@@ -1,20 +1,23 @@
-﻿using CannoliKit.Workers;
+﻿using CannoliKit.Interfaces;
+using CannoliKit.Workers;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 
 namespace CannoliKit.Registries
 {
-    public sealed class CannoliWorkerRegistry
+    public sealed class CannoliWorkerRegistry<TContext>
+    where TContext : DbContext, ICannoliDbContext
     {
-        private readonly CannoliClient _cannoliClient;
-        private readonly ConcurrentDictionary<Type, CannoliWorkerBase> _workers;
+        private readonly CannoliClient<TContext> _cannoliClient;
+        private readonly ConcurrentDictionary<Type, CannoliWorkerBase<TContext>> _workers;
 
-        internal CannoliWorkerRegistry(CannoliClient cannoliClient)
+        internal CannoliWorkerRegistry(CannoliClient<TContext> cannoliClient)
         {
-            _workers = new ConcurrentDictionary<Type, CannoliWorkerBase>();
+            _workers = new ConcurrentDictionary<Type, CannoliWorkerBase<TContext>>();
             _cannoliClient = cannoliClient;
         }
 
-        public void Add(CannoliWorkerBase worker)
+        public void Add(CannoliWorkerBase<TContext> worker)
         {
             if (_workers.ContainsKey(worker.GetType())) return;
 
@@ -23,7 +26,7 @@ namespace CannoliKit.Registries
             _workers[worker.GetType()] = worker;
         }
 
-        public T? GetWorker<T>() where T : CannoliWorkerBase
+        public T? GetWorker<T>() where T : CannoliWorkerBase<TContext>
         {
             return _workers.TryGetValue(typeof(T), out var worker)
                 ? (T?)worker

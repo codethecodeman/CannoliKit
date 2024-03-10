@@ -9,7 +9,7 @@ using Timer = System.Timers.Timer;
 
 namespace CannoliKit.Workers;
 
-public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase, IDisposable
+public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase<TContext>, IDisposable
     where TContext : DbContext, ICannoliDbContext
 {
     private readonly ICannoliWorkerChannel<TJob> _channel;
@@ -44,7 +44,7 @@ public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase, IDispos
         Task.Run(InitializeTaskQueue);
     }
 
-    protected CannoliClient CannoliClient { get; private set; } = null!;
+    protected CannoliClient<TContext> CannoliClient { get; private set; } = null!;
 
     public void Dispose()
     {
@@ -62,7 +62,7 @@ public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase, IDispos
         GC.SuppressFinalize(this);
     }
 
-    internal override void Setup(CannoliClient cannoliClient)
+    internal override void Setup(CannoliClient<TContext> cannoliClient)
     {
         CannoliClient = cannoliClient;
         StartTaskQueue();
@@ -118,7 +118,7 @@ public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase, IDispos
     {
         try
         {
-            await using var db = CannoliClient.GetDbContext<TContext>();
+            await using var db = CannoliClient.GetDbContext();
 
             await DoWork(db, CannoliClient.DiscordClient, item);
 

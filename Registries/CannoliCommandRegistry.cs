@@ -1,34 +1,37 @@
 ﻿using CannoliKit.Commands;
+using CannoliKit.Interfaces;
 using Discord;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 
 namespace CannoliKit.Registries
 {
-    public sealed class CannoliCommandRegistry
+    public sealed class CannoliCommandRegistry<TContext>
+    where TContext : DbContext, ICannoliDbContext
     {
-        private readonly CannoliClient _cannoliClient;
-        private readonly ConcurrentDictionary<Type, CannoliCommandBase> _commands;
+        private readonly CannoliClient<TContext> _cannoliClient;
+        private readonly ConcurrentDictionary<Type, CannoliCommandBase<TContext>> _commands;
 
-        internal CannoliCommandRegistry(CannoliClient cannoliClient)
+        internal CannoliCommandRegistry(CannoliClient<TContext> cannoliClient)
         {
-            _commands = new ConcurrentDictionary<Type, CannoliCommandBase>();
+            _commands = new ConcurrentDictionary<Type, CannoliCommandBase<TContext>>();
             _cannoliClient = cannoliClient;
         }
 
-        public void Add(CannoliCommandBase command)
+        public void Add(CannoliCommandBase<TContext> command)
         {
             if (_commands.ContainsKey(command.GetType())) return;
             _commands[command.GetType()] = command;
         }
 
-        public T? GetCommand<T>() where T : CannoliCommandBase
+        public T? GetCommand<T>() where T : CannoliCommandBase<TContext>
         {
             return _commands.TryGetValue(typeof(T), out var worker)
                 ? (T?)worker
                 : null;
         }
 
-        public CannoliCommandBase? GetCommand(string commandName)
+        public CannoliCommandBase<TContext>? GetCommand(string commandName)
         {
             var command = _commands.Values.FirstOrDefault(c => c.Name == commandName);
 

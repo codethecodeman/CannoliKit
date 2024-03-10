@@ -7,7 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace CannoliKit.Commands
 {
     /// <inheritdoc/>
-    public abstract class CannoliCommand<TContext> : CannoliCommandBase where TContext : DbContext, ICannoliDbContext
+    public abstract class CannoliCommand<TContext> : CannoliCommandBase<TContext>
+        where TContext : DbContext, ICannoliDbContext
     {
         /// <inheritdoc/>
         public abstract override string Name { get; }
@@ -18,11 +19,6 @@ namespace CannoliKit.Commands
         /// <inheritdoc/>
         public abstract override ApplicationCommandProperties Build();
 
-        internal override async Task Respond(ICannoliDbContext db, DiscordSocketClient discordClient, SocketCommandBase socketCommand)
-        {
-            await Respond((TContext)db, discordClient, socketCommand);
-        }
-
         /// <summary>
         /// Responds to an incoming command.
         /// </summary>
@@ -30,6 +26,6 @@ namespace CannoliKit.Commands
         /// <param name="discordClient">The Cannoli client's connected Discord client.</param>
         /// <param name="command">The command object received by the Discord event.</param>
         /// <returns></returns>
-        public abstract Task Respond(TContext db, DiscordSocketClient discordClient, SocketCommandBase command);
+        protected abstract override Task Respond(TContext db, DiscordSocketClient discordClient, SocketCommandBase command);
     }
 }
