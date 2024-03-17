@@ -10,28 +10,28 @@ namespace CannoliKit.Registries
     where TContext : DbContext, ICannoliDbContext
     {
         private readonly CannoliClient<TContext> _cannoliClient;
-        private readonly ConcurrentDictionary<Type, CannoliCommandBase<TContext>> _commands;
+        private readonly ConcurrentDictionary<Type, CannoliCommand<TContext>> _commands;
 
         internal CannoliCommandRegistry(CannoliClient<TContext> cannoliClient)
         {
-            _commands = new ConcurrentDictionary<Type, CannoliCommandBase<TContext>>();
+            _commands = new ConcurrentDictionary<Type, CannoliCommand<TContext>>();
             _cannoliClient = cannoliClient;
         }
 
-        public void Add(CannoliCommandBase<TContext> command)
+        public void Add(CannoliCommand<TContext> command)
         {
             if (_commands.ContainsKey(command.GetType())) return;
             _commands[command.GetType()] = command;
         }
 
-        public T? GetCommand<T>() where T : CannoliCommandBase<TContext>
+        public T? GetCommand<T>() where T : CannoliCommand<TContext>
         {
             return _commands.TryGetValue(typeof(T), out var worker)
                 ? (T?)worker
                 : null;
         }
 
-        public CannoliCommandBase<TContext>? GetCommand(string commandName)
+        public CannoliCommand<TContext>? GetCommand(string commandName)
         {
             var command = _commands.Values.FirstOrDefault(c => c.Name == commandName);
 

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CannoliKit
 {
     public class CannoliClient<TContext>
-    where TContext : DbContext, ICannoliDbContext
+        where TContext : DbContext, ICannoliDbContext
     {
         public delegate Task LogEventHandler(LogMessage e);
         public event LogEventHandler? Log;
@@ -55,28 +55,33 @@ namespace CannoliKit
             {
                 _ = Task.Run(async () =>
                 {
-                    var command = Commands.GetCommand(arg.CommandName);
-
-                    if (command == null) return;
-
-                    if (command.DeferralType != DeferralType.None)
-                    {
-                        var isEphemeral = command.DeferralType == DeferralType.Ephemeral;
-                        await arg.DeferAsync(ephemeral: isEphemeral);
-                    }
-
-                    var worker = Workers.GetWorker<DiscordCommandWorker<TContext>>()!;
-
-                    worker.EnqueueJob(
-                        new DiscordCommandJob()
-                        {
-                            SocketCommand = arg,
-                        },
-                        (command.DeferralType == DeferralType.None) ? Priority.High : Priority.Normal);
+                    await EnqueueCommandEvent(arg);
                 });
 
                 await Task.CompletedTask;
             }
+        }
+
+        private async Task EnqueueCommandEvent(SocketCommandBase arg)
+        {
+            var command = Commands.GetCommand(arg.CommandName);
+
+            if (command == null) return;
+
+            if (command.DeferralType != DeferralType.None)
+            {
+                var isEphemeral = command.DeferralType == DeferralType.Ephemeral;
+                await arg.DeferAsync(ephemeral: isEphemeral);
+            }
+
+            var worker = Workers.GetWorker<DiscordCommandWorker<TContext>>()!;
+
+            worker.EnqueueJob(
+                new DiscordCommandJob()
+                {
+                    SocketCommand = arg,
+                },
+                (command.DeferralType == DeferralType.None) ? Priority.High : Priority.Normal);
         }
 
         private void SubscribeMessageComponentEvents()

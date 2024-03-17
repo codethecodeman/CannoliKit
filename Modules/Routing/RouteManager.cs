@@ -93,7 +93,10 @@ namespace CannoliKit.Modules.Routing
                 parameter2: parameter2,
                 parameter3: parameter3);
 
-            _routesToAdd.Add(route);
+            if (route.IsNew)
+            {
+                _routesToAdd.Add(route);
+            }
 
             return route;
         }

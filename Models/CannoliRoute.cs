@@ -7,7 +7,6 @@ namespace CannoliKit.Models
 {
     [Index(nameof(StateId))]
     [Index(nameof(Id), nameof(Type))]
-    [Index(nameof(StateId), nameof(Name), IsUnique = true)]
     public sealed class CannoliRoute
     {
         [Key]
@@ -43,6 +42,9 @@ namespace CannoliKit.Models
         public string? Parameter2 { get; set; }
 
         public string? Parameter3 { get; set; }
+
+        [NotMapped]
+        internal bool IsNew { get; set; }
 
         public override string ToString()
         {
