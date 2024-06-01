@@ -9,7 +9,7 @@ using Timer = System.Timers.Timer;
 
 namespace CannoliKit.Workers;
 
-public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase<TContext>, IDisposable
+public abstract class CannoliWorker<TContext, TJob> : ICannoliWorker
     where TContext : DbContext, ICannoliDbContext
 {
     private readonly ICannoliWorkerChannel<TJob> _channel;
@@ -17,6 +17,8 @@ public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase<TContext
     private readonly SemaphoreSlim _taskSemaphore;
     protected readonly int MaxConcurrentTaskCount;
     private bool _isRunning, _isDisposed;
+    internal delegate Task LogEventHandler(LogMessage e);
+    internal event LogEventHandler? Log;
 
     protected CannoliWorker(int maxConcurrentTaskCount)
     {
@@ -43,6 +45,12 @@ public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase<TContext
 
         Task.Run(InitializeTaskQueue);
     }
+    protected async Task EmitLog(LogMessage logMessage)
+    {
+        if (Log == null) return;
+
+        await Log.Invoke(logMessage);
+    }
 
     protected CannoliClient<TContext> CannoliClient { get; private set; } = null!;
 
@@ -62,7 +70,7 @@ public abstract class CannoliWorker<TContext, TJob> : CannoliWorkerBase<TContext
         GC.SuppressFinalize(this);
     }
 
-    internal override void Setup(CannoliClient<TContext> cannoliClient)
+    internal void Setup(CannoliClient<TContext> cannoliClient)
     {
         CannoliClient = cannoliClient;
         StartTaskQueue();

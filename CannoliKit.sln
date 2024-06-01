@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34309.116
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CannoliKit", "CannoliKit.csproj", "{B7FE8E92-2AC5-4EA2-927A-EEEC56B6385A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CannoliKit", "CannoliKit\CannoliKit.csproj", "{16443FDF-6E6B-4070-A3F0-3D358F575AFC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample", "Sample\Sample.csproj", "{59A1B4B6-20E9-4E30-80F9-82FE4E5FD318}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B7FE8E92-2AC5-4EA2-927A-EEEC56B6385A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B7FE8E92-2AC5-4EA2-927A-EEEC56B6385A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B7FE8E92-2AC5-4EA2-927A-EEEC56B6385A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B7FE8E92-2AC5-4EA2-927A-EEEC56B6385A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{16443FDF-6E6B-4070-A3F0-3D358F575AFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16443FDF-6E6B-4070-A3F0-3D358F575AFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16443FDF-6E6B-4070-A3F0-3D358F575AFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16443FDF-6E6B-4070-A3F0-3D358F575AFC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59A1B4B6-20E9-4E30-80F9-82FE4E5FD318}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59A1B4B6-20E9-4E30-80F9-82FE4E5FD318}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59A1B4B6-20E9-4E30-80F9-82FE4E5FD318}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59A1B4B6-20E9-4E30-80F9-82FE4E5FD318}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

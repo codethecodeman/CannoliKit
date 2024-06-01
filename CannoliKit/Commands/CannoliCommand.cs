@@ -9,7 +9,7 @@ namespace CannoliKit.Commands
     /// <summary>
     /// Represents a Discord command within Cannoli.
     /// </summary>
-    public abstract class CannoliCommand<TContext>
+    public abstract class CannoliCommand<TContext> : ICannoliCommand
     where TContext : DbContext, ICannoliDbContext
     {
         /// <summary>
