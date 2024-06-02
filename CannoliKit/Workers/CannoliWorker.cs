@@ -4,6 +4,7 @@ using CannoliKit.Workers.Channels;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using Timer = System.Timers.Timer;
 
@@ -20,7 +21,8 @@ public abstract class CannoliWorker<TContext, TJob> : ICannoliWorker
     internal delegate Task LogEventHandler(LogMessage e);
     internal event LogEventHandler? Log;
 
-    protected CannoliWorker(int maxConcurrentTaskCount)
+    protected CannoliWorker(
+        IServiceScopeFactory serviceScopeFactory)
     {
         _channel = new PriorityChannel<TJob>();
 

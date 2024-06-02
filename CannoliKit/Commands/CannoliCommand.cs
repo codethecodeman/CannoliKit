@@ -1,4 +1,5 @@
-﻿using CannoliKit.Enums;
+﻿using CannoliKit.Attributes;
+using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using Discord;
 using Discord.WebSocket;
@@ -9,6 +10,7 @@ namespace CannoliKit.Commands
     /// <summary>
     /// Represents a Discord command within Cannoli.
     /// </summary>
+    [CannoliCommandName("a")]
     public abstract class CannoliCommand<TContext> : ICannoliCommand
     where TContext : DbContext, ICannoliDbContext
     {

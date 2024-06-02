@@ -1,4 +1,5 @@
-﻿using CannoliKit.Factories;
+﻿using CannoliKit.Attributes;
+using CannoliKit.Factories;
 using CannoliKit.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,17 +9,6 @@ namespace CannoliKit.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        private static readonly Type[] SingletonCannoliInterfaces =
-        [
-            typeof(ICannoliWorker),
-        ];
-
-        private static readonly Type[] TransientCannoliInterfaces =
-        [
-            typeof(ICannoliModule),
-            typeof(ICannoliCommand)
-        ];
-
         public static IServiceCollection AddCannoliServices<TContext>(this IServiceCollection services)
             where TContext : DbContext, ICannoliDbContext
         {
@@ -30,7 +20,8 @@ namespace CannoliKit.Extensions
 
             RegisterServicesFromAssembly(services, cannoliAssembly);
 
-            var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var loadedAssemblies =
+                AppDomain.CurrentDomain.GetAssemblies();
 
             foreach (var assembly in loadedAssemblies)
             {
@@ -47,25 +38,45 @@ namespace CannoliKit.Extensions
         {
             var types = assembly.GetTypes();
 
-            foreach (var type in types)
+            var workers = FilterTypes(types, typeof(ICannoliWorker));
+
+            foreach (var worker in workers)
             {
-                foreach (var cannoliInterface in SingletonCannoliInterfaces)
+                services.AddSingleton(typeof(ICannoliWorker), worker);
+            }
+
+            var modules = FilterTypes(types, typeof(ICannoliModule));
+
+            foreach (var module in modules)
+            {
+                services.AddTransient(typeof(ICannoliModule), module);
+            }
+
+            var commands = FilterTypes(types, typeof(ICannoliCommand));
+
+            foreach (var command in commands)
+            {
+                var commandNameAttribute = command
+                    .GetCustomAttributes(typeof(CannoliCommandNameAttribute), true)
+                    .FirstOrDefault();
+
+                if (commandNameAttribute == null)
                 {
-                    if (cannoliInterface.IsAssignableFrom(type) && type is { IsInterface: false, IsAbstract: false })
-                    {
-                        services.AddSingleton(cannoliInterface, type);
-                    }
+                    throw new InvalidOperationException(
+                        $"Type {command} is missing {nameof(CannoliCommandNameAttribute)} and cannot be registered");
                 }
 
-                foreach (var cannoliInterface in TransientCannoliInterfaces)
-                {
-                    if (cannoliInterface.IsAssignableFrom(type) && type is { IsInterface: false, IsAbstract: false })
-                    {
-                        services.AddTransient(cannoliInterface, type);
-                    }
-                }
+                services.AddTransient(typeof(ICannoliCommand), command);
             }
         }
 
+        private static IEnumerable<Type> FilterTypes(IEnumerable<Type> types, Type match)
+        {
+            return types
+                .Where(x =>
+                    match.IsAssignableFrom(x)
+                    && x is { IsInterface: false, IsAbstract: false })
+                .ToList();
+        }
     }
 }

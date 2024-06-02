@@ -1,54 +1,67 @@
-﻿using CannoliKit.Enums;
+﻿using CannoliKit.Attributes;
+using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
-using CannoliKit.Registries;
 using CannoliKit.Utilities;
 using CannoliKit.Workers.Core;
 using CannoliKit.Workers.Jobs;
-using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CannoliKit
 {
     public class CannoliClient<TContext>
         where TContext : DbContext, ICannoliDbContext
     {
-        public delegate Task LogEventHandler(LogMessage e);
-        public event LogEventHandler? Log;
-        public CannoliWorkerRegistry<TContext> Workers { get; }
-        public CannoliCommandRegistry<TContext> Commands { get; }
-        public DiscordSocketClient DiscordClient { get; private set; } = null!;
-        internal IDbContextFactory<TContext> DbContextFactory { get; private set; } = null!;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly DiscordSocketClient _discordClient;
+        private readonly TContext _db;
+        private readonly Dictionary<string, Type> _commands = [];
 
-        public CannoliClient()
+        public CannoliClient(
+            IServiceProvider serviceProvider,
+            DiscordSocketClient discordClient,
+            TContext dbContext)
         {
-            Workers = new CannoliWorkerRegistry<TContext>(this);
-            Commands = new CannoliCommandRegistry<TContext>(this);
+            _serviceProvider = serviceProvider;
+            _discordClient = discordClient;
+            _db = dbContext;
         }
 
-        public void Setup(
-            DiscordSocketClient discordClient,
-            IDbContextFactory<TContext> dbContextFactory)
+        public void Setup()
         {
-            DiscordClient = discordClient;
-            DbContextFactory = dbContextFactory;
+            RegisterCommandNames();
             InitializeWorkers();
             SubscribeCommandEvents();
             SubscribeMessageComponentEvents();
             SubscribeModalEvents();
         }
 
-        public TContext GetDbContext()
+        private void RegisterCommandNames()
         {
-            return DbContextFactory.CreateDbContext();
+            var commandTypes = _serviceProvider
+                .GetServices(typeof(ICannoliCommand))
+                .Select(x => x!.GetType())
+                .ToList();
+
+            foreach (var commandType in commandTypes)
+            {
+                var attribute = commandType
+                    .GetCustomAttributes(typeof(CannoliCommandNameAttribute), true)
+                    .First();
+
+                var commandName = ((CannoliCommandNameAttribute)attribute).CommandName;
+
+                _commands.Add(commandName, commandType);
+            }
         }
 
         private void SubscribeCommandEvents()
         {
-            DiscordClient.SlashCommandExecuted += Enqueue;
-            DiscordClient.UserCommandExecuted += Enqueue;
-            DiscordClient.MessageCommandExecuted += Enqueue;
+            _discordClient.SlashCommandExecuted += Enqueue;
+            _discordClient.UserCommandExecuted += Enqueue;
+            _discordClient.MessageCommandExecuted += Enqueue;
             return;
 
             async Task Enqueue(SocketCommandBase arg)
@@ -64,9 +77,9 @@ namespace CannoliKit
 
         private async Task EnqueueCommandEvent(SocketCommandBase arg)
         {
-            var command = Commands.GetCommand(arg.CommandName);
+            if (_commands.ContainsKey(arg.CommandName) == false) return;
 
-            if (command == null) return;
+            var command = (ICannoliCommand)_serviceProvider.GetRequiredService(_commands[arg.CommandName]);
 
             if (command.DeferralType != DeferralType.None)
             {
@@ -74,7 +87,7 @@ namespace CannoliKit
                 await arg.DeferAsync(ephemeral: isEphemeral);
             }
 
-            var worker = Workers.GetWorker<DiscordCommandWorker<TContext>>()!;
+            var worker = _serviceProvider.GetRequiredService<DiscordCommandWorker<TContext>>();
 
             worker.EnqueueJob(
                 new DiscordCommandJob()
@@ -86,8 +99,8 @@ namespace CannoliKit
 
         private void SubscribeMessageComponentEvents()
         {
-            DiscordClient.ButtonExecuted += Enqueue;
-            DiscordClient.SelectMenuExecuted += Enqueue;
+            _discordClient.ButtonExecuted += Enqueue;
+            _discordClient.SelectMenuExecuted += Enqueue;
             return;
 
             async Task Enqueue(SocketMessageComponent arg)
@@ -103,7 +116,7 @@ namespace CannoliKit
 
         private void SubscribeModalEvents()
         {
-            DiscordClient.ModalSubmitted += Enqueue;
+            _discordClient.ModalSubmitted += Enqueue;
             return;
 
             async Task Enqueue(SocketModal arg)
@@ -152,7 +165,7 @@ namespace CannoliKit
 
         private async Task EnqueueModuleEvent(CannoliModuleEventJob cannoliModuleEventJob)
         {
-            var worker = Workers.GetWorker<CannoliModuleEventWorker<TContext>>()!;
+            var worker = _serviceProvider.GetRequiredService<CannoliModuleEventWorker<TContext>>();
 
             worker.EnqueueJob(
                 cannoliModuleEventJob);
@@ -164,35 +177,17 @@ namespace CannoliKit
         {
             if (RouteUtility.IsValidRouteId(customId) == false) return null;
 
-            await using var db = GetDbContext();
-
-            return await RouteUtility.GetRoute(db, customId);
+            return await RouteUtility.GetRoute(_db, customId);
         }
 
         private void InitializeWorkers()
         {
-            Workers.Add(new DiscordCommandWorker<TContext>(
-                maxConcurrentTaskCount: int.MaxValue));
+            var worker = _serviceProvider.GetRequiredService<CannoliCleanupWorker<TContext>>();
 
-            Workers.Add(new CannoliModuleEventWorker<TContext>(
-                maxConcurrentTaskCount: int.MaxValue));
-
-            var stateCleanupWorker = new CannoliCleanupWorker<TContext>(
-                maxConcurrentTaskCount: 1);
-
-            stateCleanupWorker.ScheduleRepeatingJob(
+            worker.ScheduleRepeatingJob(
                 TimeSpan.FromMinutes(1),
                 workItem: true,
                 doWorkNow: true);
-
-            Workers.Add(stateCleanupWorker);
-        }
-
-        internal async Task EmitLog(LogMessage logMessage)
-        {
-            if (Log == null) return;
-
-            await Log.Invoke(logMessage);
         }
     }
 }

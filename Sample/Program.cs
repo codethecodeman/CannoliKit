@@ -1,4 +1,5 @@
-﻿using CannoliKit.Extensions;
+﻿using CannoliKit;
+using CannoliKit.Extensions;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,7 +28,15 @@ namespace Sample
 
             collection.AddCannoliServices<SampleDbContext>();
 
-            collection.BuildServiceProvider();
+            var serviceProvider = collection.BuildServiceProvider();
+
+            var cannoliClient = serviceProvider.GetRequiredService<CannoliClient<SampleDbContext>>();
+
+            cannoliClient.Setup();
+
+            var discordClient = serviceProvider.GetRequiredService<DiscordSocketClient>();
+
+
 
             await Task.Delay(-1);
         }

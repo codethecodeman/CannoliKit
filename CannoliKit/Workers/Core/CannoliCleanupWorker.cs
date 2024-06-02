@@ -7,7 +7,7 @@ namespace CannoliKit.Workers.Core
 {
     internal sealed class CannoliCleanupWorker<TContext> : CannoliWorker<TContext, bool> where TContext : DbContext, ICannoliDbContext
     {
-        internal CannoliCleanupWorker(int maxConcurrentTaskCount) : base(maxConcurrentTaskCount)
+        internal CannoliCleanupWorker() : base(maxConcurrentTaskCount: 1)
         {
         }
 
