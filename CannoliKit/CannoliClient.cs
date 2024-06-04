@@ -2,8 +2,8 @@
 using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
+using CannoliKit.Processors.Core;
 using CannoliKit.Utilities;
-using CannoliKit.Workers.Core;
 using CannoliKit.Workers.Jobs;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +18,7 @@ namespace CannoliKit
         private readonly DiscordSocketClient _discordClient;
         private readonly TContext _db;
         private readonly Dictionary<string, Type> _commands = [];
+        private readonly CannoliModuleEventProcessor<1>
 
         public CannoliClient(
             IServiceProvider serviceProvider,
@@ -87,10 +88,10 @@ namespace CannoliKit
                 await arg.DeferAsync(ephemeral: isEphemeral);
             }
 
-            var worker = _serviceProvider.GetRequiredService<DiscordCommandWorker<TContext>>();
+            var jobQueue = _serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliCommandJob>>();
 
-            worker.EnqueueJob(
-                new DiscordCommandJob()
+            jobQueue.EnqueueJob(
+                new CannoliCommandJob()
                 {
                     SocketCommand = arg,
                 },
@@ -165,7 +166,7 @@ namespace CannoliKit
 
         private async Task EnqueueModuleEvent(CannoliModuleEventJob cannoliModuleEventJob)
         {
-            var worker = _serviceProvider.GetRequiredService<CannoliModuleEventWorker<TContext>>();
+            var worker = _serviceProvider.GetRequiredService<CannoliModuleEventProcessor<TContext>>();
 
             worker.EnqueueJob(
                 cannoliModuleEventJob);
@@ -182,7 +183,7 @@ namespace CannoliKit
 
         private void InitializeWorkers()
         {
-            var worker = _serviceProvider.GetRequiredService<CannoliCleanupWorker<TContext>>();
+            var worker = _serviceProvider.GetRequiredService<CannoliCleanupProcessor<TContext>>();
 
             worker.ScheduleRepeatingJob(
                 TimeSpan.FromMinutes(1),

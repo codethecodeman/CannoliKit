@@ -1,9 +1,12 @@
-﻿using CannoliKit.Enums;
+﻿using CannoliKit.Commands;
+using CannoliKit.Enums;
 
 namespace CannoliKit.Interfaces
 {
-    internal interface ICannoliCommand
+    public interface ICannoliCommand
     {
         DeferralType DeferralType { get; }
+
+        Task RespondAsync(CannoliCommandContext context);
     }
 }

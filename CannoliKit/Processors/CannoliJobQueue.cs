@@ -1,60 +1,51 @@
 ﻿using CannoliKit.Enums;
 using CannoliKit.Interfaces;
-using CannoliKit.Workers.Channels;
+using CannoliKit.Processors.Channels;
+using CannoliKit.Workers;
 using Discord;
-using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using Timer = System.Timers.Timer;
 
-namespace CannoliKit.Workers;
+namespace CannoliKit.Processors;
 
-public abstract class CannoliWorker<TContext, TJob> : ICannoliWorker
-    where TContext : DbContext, ICannoliDbContext
+public sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>
 {
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ICannoliWorkerChannel<TJob> _channel;
     private readonly ConcurrentBag<Timer> _repeatingWorkTimers;
     private readonly SemaphoreSlim _taskSemaphore;
-    protected readonly int MaxConcurrentTaskCount;
+    private readonly int _maxConcurrentTaskCount;
     private bool _isRunning, _isDisposed;
     internal delegate Task LogEventHandler(LogMessage e);
     internal event LogEventHandler? Log;
 
-    protected CannoliWorker(
-        IServiceScopeFactory serviceScopeFactory)
+    internal CannoliJobQueue(
+        IServiceProvider serviceProvider,
+        IServiceScopeFactory serviceScopeFactory,
+        CannoliJobQueueOptions options)
     {
+        _serviceProvider = serviceProvider;
+        _scopeFactory = serviceScopeFactory;
+
         _channel = new PriorityChannel<TJob>();
 
-        MaxConcurrentTaskCount = maxConcurrentTaskCount;
-        _isRunning = false;
+        _maxConcurrentTaskCount = options.MaxConcurrentJobs;
+        _isRunning = true;
         _isDisposed = false;
-        _taskSemaphore = new SemaphoreSlim(MaxConcurrentTaskCount, MaxConcurrentTaskCount);
+        _taskSemaphore = new SemaphoreSlim(_maxConcurrentTaskCount, _maxConcurrentTaskCount);
         _repeatingWorkTimers = [];
 
         Task.Run(InitializeTaskQueue);
     }
 
-    internal CannoliWorker(int maxConcurrentTaskCount, ICannoliWorkerChannel<TJob> channel)
-    {
-        _channel = channel;
-
-        MaxConcurrentTaskCount = maxConcurrentTaskCount;
-        _isRunning = false;
-        _isDisposed = false;
-        _taskSemaphore = new SemaphoreSlim(MaxConcurrentTaskCount, MaxConcurrentTaskCount);
-        _repeatingWorkTimers = [];
-
-        Task.Run(InitializeTaskQueue);
-    }
     protected async Task EmitLog(LogMessage logMessage)
     {
         if (Log == null) return;
 
         await Log.Invoke(logMessage);
     }
-
-    protected CannoliClient<TContext> CannoliClient { get; private set; } = null!;
 
     public void Dispose()
     {
@@ -72,15 +63,9 @@ public abstract class CannoliWorker<TContext, TJob> : ICannoliWorker
         GC.SuppressFinalize(this);
     }
 
-    internal void Setup(CannoliClient<TContext> cannoliClient)
+    public void EnqueueJob(TJob job, Priority priority = Priority.Normal)
     {
-        CannoliClient = cannoliClient;
-        StartTaskQueue();
-    }
-
-    public void EnqueueJob(TJob item, Priority priority = Priority.Normal)
-    {
-        _channel.Write(item, priority);
+        _channel.Write(job, priority);
     }
 
     private async Task InitializeTaskQueue()
@@ -121,18 +106,17 @@ public abstract class CannoliWorker<TContext, TJob> : ICannoliWorker
             });
         }
 
-        for (var i = 0; i < MaxConcurrentTaskCount; i++) await _taskSemaphore.WaitAsync();
+        for (var i = 0; i < _maxConcurrentTaskCount; i++) await _taskSemaphore.WaitAsync();
     }
 
     private async Task ProcessWork(TJob item)
     {
         try
         {
-            await using var db = CannoliClient.GetDbContext();
+            using var scope = _scopeFactory.CreateScope();
+            var jobHandler = scope.ServiceProvider.GetRequiredService<ICannoliProcessor<TJob>>();
 
-            await DoWork(db, CannoliClient.DiscordClient, item);
-
-            await db.SaveChangesAsync();
+            await jobHandler.HandleJobAsync(item);
         }
         catch (Exception ex)
         {
@@ -160,15 +144,13 @@ public abstract class CannoliWorker<TContext, TJob> : ICannoliWorker
         _repeatingWorkTimers.Add(timer);
     }
 
-    public void StartTaskQueue()
+    internal void StartTaskQueue()
     {
         _isRunning = true;
     }
 
-    public void StopTaskQueue()
+    internal void StopTaskQueue()
     {
         _isRunning = false;
     }
-
-    protected abstract Task DoWork(TContext db, DiscordSocketClient discordClient, TJob item);
 }

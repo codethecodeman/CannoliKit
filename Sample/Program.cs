@@ -1,8 +1,10 @@
 ﻿using CannoliKit;
 using CannoliKit.Extensions;
+using CannoliKit.Workers;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Sample.Processors.MealOrder;
 
 namespace Sample
 {
@@ -25,6 +27,12 @@ namespace Sample
 
             collection.AddDbContext<SampleDbContext>(opt =>
                 opt.UseSqlite(Path.Join(appPath, "sample.db")));
+
+            collection.AddCannoliProcessor<MealOrderProcessor, MealOrder>(
+                new CannoliJobQueueOptions
+                {
+                    MaxConcurrentJobs = 4
+                });
 
             collection.AddCannoliServices<SampleDbContext>();
 

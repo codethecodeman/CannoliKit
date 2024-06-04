@@ -7,14 +7,14 @@ using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Concurrent;
 
-namespace CannoliKit.Workers.Core
+namespace CannoliKit.Processors.Core
 {
-    internal class CannoliModuleEventWorker<TContext> : CannoliWorker<TContext, CannoliModuleEventJob>
+    internal class CannoliModuleEventProcessor<TContext> : CannoliJobQueue<>
         where TContext : DbContext, ICannoliDbContext
     {
         private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> _turns = new();
 
-        public CannoliModuleEventWorker(int maxConcurrentTaskCount) : base(maxConcurrentTaskCount)
+        public CannoliModuleEventProcessor(int maxConcurrentTaskCount) : base(maxConcurrentTaskCount)
         {
         }
 

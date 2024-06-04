@@ -2,7 +2,7 @@
 using CannoliKit.Interfaces;
 using System.Threading.Channels;
 
-namespace CannoliKit.Workers.Channels
+namespace CannoliKit.Processors.Channels
 {
     internal sealed class PriorityChannel<T> : ICannoliWorkerChannel<T>, IDisposable
     {
