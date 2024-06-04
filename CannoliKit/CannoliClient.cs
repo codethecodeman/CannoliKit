@@ -2,59 +2,66 @@
 using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
-using CannoliKit.Processors.Core;
+using CannoliKit.Processors.Jobs;
 using CannoliKit.Utilities;
 using CannoliKit.Workers.Jobs;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Concurrent;
 
 namespace CannoliKit
 {
-    public class CannoliClient<TContext>
+    public class CannoliClient<TContext> : ICannoliClient
         where TContext : DbContext, ICannoliDbContext
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly DiscordSocketClient _discordClient;
-        private readonly TContext _db;
-        private readonly Dictionary<string, Type> _commands = [];
-        private readonly CannoliModuleEventProcessor<1>
+        private readonly ConcurrentDictionary<string, CannoliCommandAttribute> _commandAttributes = new();
+        private readonly ICannoliJobQueue<CannoliCommandJob> _commandJobQueue;
+        private readonly ICannoliJobQueue<CannoliModuleEventJob> _moduleEventJobQueue;
+        private readonly ICannoliJobQueue<CannoliCleanupJob> _cleanupJobQueue;
 
         public CannoliClient(
             IServiceProvider serviceProvider,
-            DiscordSocketClient discordClient,
-            TContext dbContext)
+            DiscordSocketClient discordClient)
         {
             _serviceProvider = serviceProvider;
             _discordClient = discordClient;
-            _db = dbContext;
+            _commandJobQueue = _serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliCommandJob>>();
+            _moduleEventJobQueue = _serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliModuleEventJob>>();
+            _cleanupJobQueue = _serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliCleanupJob>>();
         }
 
         public void Setup()
         {
-            RegisterCommandNames();
+            LoadCommandAttributes();
             InitializeWorkers();
             SubscribeCommandEvents();
             SubscribeMessageComponentEvents();
             SubscribeModalEvents();
         }
 
-        private void RegisterCommandNames()
+        private void LoadCommandAttributes()
         {
-            var commandTypes = _serviceProvider
-                .GetServices(typeof(ICannoliCommand))
-                .Select(x => x!.GetType())
-                .ToList();
+            var types = _serviceProvider.GetServices<ICannoliCommand>();
 
-            foreach (var commandType in commandTypes)
+            foreach (var type in types)
             {
-                var attribute = commandType
-                    .GetCustomAttributes(typeof(CannoliCommandNameAttribute), true)
-                    .First();
+                var commandAttribute = (CannoliCommandAttribute?)
+                    type
+                    .GetType()
+                    .GetCustomAttributes(typeof(CannoliCommandAttribute), true)
+                    .FirstOrDefault();
 
-                var commandName = ((CannoliCommandNameAttribute)attribute).CommandName;
+                if (commandAttribute == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Type {nameof(type)} is missing {nameof(CannoliCommandAttribute)} and cannot be loaded");
+                }
 
-                _commands.Add(commandName, commandType);
+                var commandName = commandAttribute.CommandName;
+                _commandAttributes[commandName] = commandAttribute;
             }
         }
 
@@ -78,24 +85,22 @@ namespace CannoliKit
 
         private async Task EnqueueCommandEvent(SocketCommandBase arg)
         {
-            if (_commands.ContainsKey(arg.CommandName) == false) return;
+            _commandAttributes.TryGetValue(arg.CommandName, out var attributes);
 
-            var command = (ICannoliCommand)_serviceProvider.GetRequiredService(_commands[arg.CommandName]);
+            if (attributes == null) return;
 
-            if (command.DeferralType != DeferralType.None)
+            if (attributes.DeferralType != DeferralType.None)
             {
-                var isEphemeral = command.DeferralType == DeferralType.Ephemeral;
+                var isEphemeral = attributes.DeferralType == DeferralType.Ephemeral;
                 await arg.DeferAsync(ephemeral: isEphemeral);
             }
 
-            var jobQueue = _serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliCommandJob>>();
-
-            jobQueue.EnqueueJob(
+            _commandJobQueue.EnqueueJob(
                 new CannoliCommandJob()
                 {
                     SocketCommand = arg,
                 },
-                (command.DeferralType == DeferralType.None) ? Priority.High : Priority.Normal);
+                (attributes.DeferralType == DeferralType.None) ? Priority.High : Priority.Normal);
         }
 
         private void SubscribeMessageComponentEvents()
@@ -166,9 +171,7 @@ namespace CannoliKit
 
         private async Task EnqueueModuleEvent(CannoliModuleEventJob cannoliModuleEventJob)
         {
-            var worker = _serviceProvider.GetRequiredService<CannoliModuleEventProcessor<TContext>>();
-
-            worker.EnqueueJob(
+            _moduleEventJobQueue.EnqueueJob(
                 cannoliModuleEventJob);
 
             await Task.CompletedTask;
@@ -183,11 +186,9 @@ namespace CannoliKit
 
         private void InitializeWorkers()
         {
-            var worker = _serviceProvider.GetRequiredService<CannoliCleanupProcessor<TContext>>();
-
-            worker.ScheduleRepeatingJob(
-                TimeSpan.FromMinutes(1),
-                workItem: true,
+            _cleanupJobQueue.ScheduleRepeatingJob(
+                repeatEvery: TimeSpan.FromMinutes(1),
+                job: new CannoliCleanupJob(),
                 doWorkNow: true);
         }
     }

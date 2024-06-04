@@ -5,10 +5,10 @@ using CannoliKit.Interfaces;
 
 namespace Sample.Commands
 {
-    [CannoliCommandName("order")]
-    internal class OrderCommand : ICannoliCommand
+    [CannoliCommand("order-meal", DeferralType.Ephemeral)]
+
+    internal class OrderMealCommand : ICannoliCommand
     {
-        public DeferralType DeferralType => DeferralType.Ephemeral;
         public Task RespondAsync(CannoliCommandContext context)
         {
             throw new NotImplementedException();

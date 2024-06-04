@@ -1,10 +1,11 @@
 ﻿using CannoliKit.Interfaces;
+using CannoliKit.Processors.Jobs;
 using CannoliKit.Utilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace CannoliKit.Processors.Core
 {
-    internal sealed class CannoliCleanupProcessor<TContext> : ICannoliProcessor<bool>
+    internal sealed class CannoliCleanupProcessor<TContext> : ICannoliProcessor<CannoliCleanupJob>
     where TContext : DbContext, ICannoliDbContext
     {
         private readonly TContext _db;
@@ -15,7 +16,7 @@ namespace CannoliKit.Processors.Core
             _db = db;
         }
 
-        public async Task HandleJobAsync(bool job)
+        public async Task HandleJobAsync(CannoliCleanupJob job)
         {
             var expiredStates = await _db.CannoliSaveStates
                 .Where(s => s.ExpiresOn <= DateTime.UtcNow)

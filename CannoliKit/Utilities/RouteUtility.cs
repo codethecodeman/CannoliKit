@@ -3,14 +3,12 @@ using CannoliKit.Interfaces;
 using CannoliKit.Models;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Concurrent;
 
 namespace CannoliKit.Utilities
 {
     internal static class RouteUtility
     {
         private const string RoutePrefix = "CannoliKit.Route.";
-        private static readonly ConcurrentDictionary<string, SemaphoreSlim> _sequentialExecutionLocks = new();
 
         internal static async Task<CannoliRoute?> GetRoute(ICannoliDbContext db, string id)
         {

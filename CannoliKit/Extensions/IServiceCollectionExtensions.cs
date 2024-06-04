@@ -3,6 +3,7 @@ using CannoliKit.Factories;
 using CannoliKit.Interfaces;
 using CannoliKit.Processors;
 using CannoliKit.Processors.Core;
+using CannoliKit.Processors.Jobs;
 using CannoliKit.Workers;
 using CannoliKit.Workers.Jobs;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,9 @@ namespace CannoliKit.Extensions
         public static IServiceCollection AddCannoliServices<TContext>(this IServiceCollection services)
             where TContext : DbContext, ICannoliDbContext
         {
-            services.AddCannoliProcessor<CannoliCleanupProcessor<TContext>, bool>(
+            services.AddSingleton<ICannoliClient, CannoliClient<TContext>>();
+
+            services.AddCannoliProcessor<CannoliCleanupProcessor<TContext>, CannoliCleanupJob>(
                 new CannoliJobQueueOptions
                 {
                     MaxConcurrentJobs = 1
@@ -30,38 +33,23 @@ namespace CannoliKit.Extensions
         public static IServiceCollection AddCannoliCommand<T>(this IServiceCollection services)
             where T : class, ICannoliCommand
         {
-            var commandNameAttribute = (CannoliCommandNameAttribute?)typeof(T)
-                .GetCustomAttributes(typeof(CannoliCommandNameAttribute), true)
-                .FirstOrDefault();
 
-            if (commandNameAttribute == null)
-            {
-                throw new InvalidOperationException(
-                    $"Type {nameof(T)} is missing {nameof(CannoliCommandNameAttribute)} and cannot be registered");
-            }
-
-            CannoliRegistry.Commands.TryAdd(
-                commandNameAttribute.CommandName,
-                typeof(T));
 
             services.AddTransient<ICannoliCommand, T>();
 
             return services;
         }
 
-        public static IServiceCollection AddCannoliProcessor<THandler, TJob>(
-            this IServiceCollection services, CannoliJobQueueOptions? options = null)
+        public static IServiceCollection AddCannoliProcessor<THandler, TJob>(this IServiceCollection services)
             where THandler : class, ICannoliProcessor<TJob>
         {
-            services.AddSingleton<ICannoliJobQueue<TJob>>(sp =>
-            {
-                var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
 
-                return new CannoliJobQueue<TJob>(
-                    sp,
-                    scopeFactory,
-                    options ?? new CannoliJobQueueOptions { MaxConcurrentJobs = int.MaxValue });
-            });
+            var attribute = (CannoliProcessorAttribute?)
+                GetType()
+                    .GetCustomAttributes(typeof(CannoliProcessorAttribute), true)
+                    .FirstOrDefault();
+
+            services.AddSingleton<ICannoliJobQueue<TJob>, CannoliJobQueue<TJob>>();
 
             services.AddTransient<ICannoliProcessor<TJob>, THandler>();
 
@@ -109,13 +97,13 @@ namespace CannoliKit.Extensions
             foreach (var command in commands)
             {
                 var commandNameAttribute = command
-                    .GetCustomAttributes(typeof(CannoliCommandNameAttribute), true)
+                    .GetCustomAttributes(typeof(CannoliCommandAttribute), true)
                     .FirstOrDefault();
 
                 if (commandNameAttribute == null)
                 {
                     throw new InvalidOperationException(
-                        $"Type {command} is missing {nameof(CannoliCommandNameAttribute)} and cannot be registered");
+                        $"Type {command} is missing {nameof(CannoliCommandAttribute)} and cannot be registered");
                 }
 
                 services.AddTransient(typeof(ICannoliCommand), command);

@@ -1,7 +1,6 @@
 ﻿using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Processors.Channels;
-using CannoliKit.Workers;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
@@ -16,25 +15,25 @@ public sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>
     private readonly ICannoliWorkerChannel<TJob> _channel;
     private readonly ConcurrentBag<Timer> _repeatingWorkTimers;
     private readonly SemaphoreSlim _taskSemaphore;
-    private readonly int _maxConcurrentTaskCount;
+    private readonly int _maxConcurrentJobsCount;
     private bool _isRunning, _isDisposed;
     internal delegate Task LogEventHandler(LogMessage e);
     internal event LogEventHandler? Log;
 
     internal CannoliJobQueue(
         IServiceProvider serviceProvider,
-        IServiceScopeFactory serviceScopeFactory,
-        CannoliJobQueueOptions options)
+        IServiceScopeFactory serviceScopeFactory)
     {
         _serviceProvider = serviceProvider;
         _scopeFactory = serviceScopeFactory;
-
         _channel = new PriorityChannel<TJob>();
 
-        _maxConcurrentTaskCount = options.MaxConcurrentJobs;
+
+
+        _maxConcurrentJobsCount = attribute?.MaxConcurrentJobs ?? int.MaxValue;
         _isRunning = true;
         _isDisposed = false;
-        _taskSemaphore = new SemaphoreSlim(_maxConcurrentTaskCount, _maxConcurrentTaskCount);
+        _taskSemaphore = new SemaphoreSlim(_maxConcurrentJobsCount, _maxConcurrentJobsCount);
         _repeatingWorkTimers = [];
 
         Task.Run(InitializeTaskQueue);
@@ -106,7 +105,7 @@ public sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>
             });
         }
 
-        for (var i = 0; i < _maxConcurrentTaskCount; i++) await _taskSemaphore.WaitAsync();
+        for (var i = 0; i < _maxConcurrentJobsCount; i++) await _taskSemaphore.WaitAsync();
     }
 
     private async Task ProcessWork(TJob item)

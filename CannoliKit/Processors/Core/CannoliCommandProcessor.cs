@@ -24,7 +24,7 @@ namespace CannoliKit.Processors.Core
         {
             var commandName = job.SocketCommand.CommandName;
 
-            CannoliRegistry.Commands.TryGetValue(commandName, out var commandType);
+            CannoliRegistry.CommandsByName.TryGetValue(commandName, out var commandType);
 
             if (commandType == null)
             {
