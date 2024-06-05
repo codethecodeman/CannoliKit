@@ -1,6 +1,7 @@
 ﻿using CannoliKit.Attributes;
-using CannoliKit.Factories;
+using CannoliKit.Concurrency;
 using CannoliKit.Interfaces;
+using CannoliKit.Modules;
 using CannoliKit.Processors;
 using CannoliKit.Processors.Core;
 using CannoliKit.Processors.Jobs;
@@ -17,55 +18,9 @@ namespace CannoliKit.Extensions
         public static IServiceCollection AddCannoliServices<TContext>(this IServiceCollection services)
             where TContext : DbContext, ICannoliDbContext
         {
-            services.AddSingleton<ICannoliClient, CannoliClient<TContext>>();
-
-            services.AddCannoliProcessor<CannoliCleanupProcessor<TContext>, CannoliCleanupJob>(
-                new CannoliJobQueueOptions
-                {
-                    MaxConcurrentJobs = 1
-                });
-
-            services.AddCannoliProcessor<CannoliCommandProcessor, CannoliCommandJob>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddCannoliCommand<T>(this IServiceCollection services)
-            where T : class, ICannoliCommand
-        {
-
-
-            services.AddTransient<ICannoliCommand, T>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddCannoliProcessor<THandler, TJob>(this IServiceCollection services)
-            where THandler : class, ICannoliProcessor<TJob>
-        {
-
-            var attribute = (CannoliProcessorAttribute?)
-                GetType()
-                    .GetCustomAttributes(typeof(CannoliProcessorAttribute), true)
-                    .FirstOrDefault();
-
-            services.AddSingleton<ICannoliJobQueue<TJob>, CannoliJobQueue<TJob>>();
-
-            services.AddTransient<ICannoliProcessor<TJob>, THandler>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddCannoliServices2<TContext>(this IServiceCollection services)
-            where TContext : DbContext, ICannoliDbContext
-        {
-            services.AddSingleton<CannoliClient<TContext>>();
-
-            services.AddSingleton<ICannoliModuleFactory, CannoliModuleFactory>();
-
             var cannoliAssembly = Assembly.GetAssembly(typeof(ServiceCollectionExtensions))!;
 
-            RegisterServicesFromAssembly(services, cannoliAssembly);
+            // Discover services in loaded assemblies.
 
             var loadedAssemblies =
                 AppDomain.CurrentDomain.GetAssemblies();
@@ -78,6 +33,23 @@ namespace CannoliKit.Extensions
                 }
             }
 
+            // Add core dependencies.
+
+            services.AddSingleton<ICannoliJobQueue<CannoliCleanupJob>, CannoliJobQueue<CannoliCleanupJob>>();
+            services.AddTransient<ICannoliProcessor<CannoliCleanupJob>, CannoliCleanupProcessor<TContext>>();
+
+            services.AddSingleton<ICannoliJobQueue<CannoliCommandJob>, CannoliJobQueue<CannoliCommandJob>>();
+            services.AddTransient<ICannoliProcessor<CannoliCommandJob>, CannoliCommandProcessor>();
+
+            services.AddSingleton<ICannoliJobQueue<CannoliModuleEventJob>, CannoliJobQueue<CannoliModuleEventJob>>();
+            services.AddTransient<ICannoliProcessor<CannoliModuleEventJob>, CannoliModuleEventProcessor>();
+
+            services.AddTransient<ICannoliModuleRouter, CannoliModuleRouter<TContext>>();
+
+            services.AddSingleton<TurnManager>();
+            services.AddSingleton<CannoliRegistry>();
+            services.AddSingleton<ICannoliClient, CannoliClient>();
+
             return services;
         }
 
@@ -85,36 +57,56 @@ namespace CannoliKit.Extensions
         {
             var types = assembly.GetTypes();
 
-            var modules = FilterTypes(types, typeof(ICannoliModule));
+            RegisterProcessors(services, types);
+            RegisterCommands(services, types);
+        }
 
-            foreach (var module in modules)
+        private static void RegisterProcessors(IServiceCollection services, IEnumerable<Type> types)
+        {
+            var processors = FilterTypes(types, typeof(ICannoliProcessor<>));
+
+            foreach (var processor in processors)
             {
-                services.AddTransient(typeof(ICannoliModule), module);
-            }
+                var attribute = (CannoliProcessorAttribute?)
+                    processor
+                        .GetCustomAttributes(typeof(CannoliProcessorAttribute), true)
+                        .FirstOrDefault();
 
+                var processorInterfaceType = processor.GetInterface(typeof(ICannoliProcessor<>).Name)!;
+                var jobType = processorInterfaceType.GetGenericArguments()[0];
+                var jobQueueInterfaceType = typeof(ICannoliJobQueue<>).MakeGenericType(jobType);
+                var jobQueueType = typeof(CannoliJobQueue<>).MakeGenericType(jobType);
+
+                services.AddSingleton(jobQueueInterfaceType, sp =>
+                {
+                    var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
+                    var options = new CannoliJobQueueOptions
+                    {
+                        MaxConcurrentJobs = attribute?.MaxConcurrentJobs ?? int.MaxValue
+                    };
+                    return Activator.CreateInstance(jobQueueType, sp, scopeFactory, options)!;
+                });
+
+                services.AddTransient(processorInterfaceType, processor);
+            }
+        }
+
+        private static void RegisterCommands(IServiceCollection services, IEnumerable<Type> types)
+        {
             var commands = FilterTypes(types, typeof(ICannoliCommand));
 
             foreach (var command in commands)
             {
-                var commandNameAttribute = command
-                    .GetCustomAttributes(typeof(CannoliCommandAttribute), true)
-                    .FirstOrDefault();
-
-                if (commandNameAttribute == null)
-                {
-                    throw new InvalidOperationException(
-                        $"Type {command} is missing {nameof(CannoliCommandAttribute)} and cannot be registered");
-                }
-
                 services.AddTransient(typeof(ICannoliCommand), command);
             }
         }
 
-        private static IEnumerable<Type> FilterTypes(IEnumerable<Type> types, Type match)
+        private static List<Type> FilterTypes(IEnumerable<Type> types, Type match)
         {
             return types
                 .Where(x =>
-                    match.IsAssignableFrom(x)
+                    x.GetInterfaces().Any(i =>
+                        (i.IsGenericType && i.GetGenericTypeDefinition() == match) || i == match)
                     && x is { IsInterface: false, IsAbstract: false })
                 .ToList();
         }

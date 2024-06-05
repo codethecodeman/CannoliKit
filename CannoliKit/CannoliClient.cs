@@ -6,18 +6,15 @@ using CannoliKit.Processors.Jobs;
 using CannoliKit.Utilities;
 using CannoliKit.Workers.Jobs;
 using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Concurrent;
 
 namespace CannoliKit
 {
-    public class CannoliClient<TContext> : ICannoliClient
-        where TContext : DbContext, ICannoliDbContext
+    public class CannoliClient : ICannoliClient
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly DiscordSocketClient _discordClient;
-        private readonly ConcurrentDictionary<string, CannoliCommandAttribute> _commandAttributes = new();
+        private readonly CannoliRegistry _registry;
         private readonly ICannoliJobQueue<CannoliCommandJob> _commandJobQueue;
         private readonly ICannoliJobQueue<CannoliModuleEventJob> _moduleEventJobQueue;
         private readonly ICannoliJobQueue<CannoliCleanupJob> _cleanupJobQueue;
@@ -28,10 +25,13 @@ namespace CannoliKit
         {
             _serviceProvider = serviceProvider;
             _discordClient = discordClient;
+            _registry = _serviceProvider.GetRequiredService<CannoliRegistry>();
             _commandJobQueue = _serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliCommandJob>>();
             _moduleEventJobQueue = _serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliModuleEventJob>>();
             _cleanupJobQueue = _serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliCleanupJob>>();
         }
+
+        internal IReadOnlyDictionary<string, Type> Commands => throw new NotImplementedException();
 
         public void Setup()
         {
@@ -61,7 +61,8 @@ namespace CannoliKit
                 }
 
                 var commandName = commandAttribute.CommandName;
-                _commandAttributes[commandName] = commandAttribute;
+                _registry.Commands[commandName] = type.GetType();
+                _registry.CommandAttributes[commandName] = commandAttribute;
             }
         }
 
@@ -85,7 +86,7 @@ namespace CannoliKit
 
         private async Task EnqueueCommandEvent(SocketCommandBase arg)
         {
-            _commandAttributes.TryGetValue(arg.CommandName, out var attributes);
+            _registry.CommandAttributes.TryGetValue(arg.CommandName, out var attributes);
 
             if (attributes == null) return;
 
@@ -181,7 +182,8 @@ namespace CannoliKit
         {
             if (RouteUtility.IsValidRouteId(customId) == false) return null;
 
-            return await RouteUtility.GetRoute(_db, customId);
+            // return await RouteUtility.GetRoute(_db, customId);
+            return new CannoliRoute();
         }
 
         private void InitializeWorkers()

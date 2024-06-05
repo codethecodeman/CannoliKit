@@ -3,7 +3,6 @@ using CannoliKit.Interfaces;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Sample.Processors.MealOrder;
 
 namespace Sample
 {
@@ -28,8 +27,6 @@ namespace Sample
                 opt.UseSqlite(Path.Join(appPath, "sample.db")));
 
             collection.AddCannoliServices<SampleDbContext>();
-
-            collection.AddCannoliProcessor<MealOrderProcessor, MealOrderJob>();
 
             var serviceProvider = collection.BuildServiceProvider();
 

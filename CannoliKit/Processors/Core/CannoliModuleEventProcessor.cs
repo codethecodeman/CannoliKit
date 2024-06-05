@@ -1,66 +1,52 @@
-﻿using CannoliKit.Interfaces;
-using CannoliKit.Models;
-using CannoliKit.Utilities;
+﻿using CannoliKit.Concurrency;
+using CannoliKit.Interfaces;
 using CannoliKit.Workers.Jobs;
-using Discord;
-using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Concurrent;
 
 namespace CannoliKit.Processors.Core
 {
-    internal class CannoliModuleEventProcessor<TContext> : CannoliJobQueue<>
-        where TContext : DbContext, ICannoliDbContext
+    internal class CannoliModuleEventProcessor : ICannoliProcessor<CannoliModuleEventJob>
     {
-        private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> _turns = new();
+        private readonly TurnManager _turnManager;
+        private readonly ICannoliModuleRouter _router;
 
-        public CannoliModuleEventProcessor(int maxConcurrentTaskCount) : base(maxConcurrentTaskCount)
+        public CannoliModuleEventProcessor(
+            TurnManager turnManager,
+            ICannoliModuleRouter router)
         {
+            _turnManager = turnManager;
+            _router = router;
         }
 
-        protected override async Task DoWork(TContext db, DiscordSocketClient discordClient, CannoliModuleEventJob item)
+        public async Task HandleJobAsync(CannoliModuleEventJob job)
         {
             object paramToPass = null!;
 
-            if (item.SocketMessageComponent != null)
+            if (job.SocketMessageComponent != null)
             {
-                paramToPass = item.SocketMessageComponent;
+                paramToPass = job.SocketMessageComponent;
             }
-            else if (item.SocketModal != null)
+            else if (job.SocketModal != null)
             {
-                paramToPass = item.SocketModal;
+                paramToPass = job.SocketModal;
             }
 
-            if (item.Route.IsSynchronous == false)
+            if (job.Route.IsSynchronous == false)
             {
-                _ = ProcessRoute(item.Route, paramToPass);
+                await _router.RouteToModuleCallback(job.Route, paramToPass);
 
                 return;
             }
 
-            _ = EnqueueItem(item, paramToPass);
+            await ProcessJobInOrder(job, paramToPass);
 
             await Task.CompletedTask;
         }
 
-        private async Task ProcessRoute(CannoliRoute route, object paramToPass)
-        {
-            await using var db = CannoliClient.GetDbContext();
-
-            await RouteUtility.RouteToModuleCallback(
-                db,
-                CannoliClient.DiscordClient,
-                route,
-                paramToPass);
-
-            await db.SaveChangesAsync();
-        }
-
-        private async Task EnqueueItem(CannoliModuleEventJob item, object paramToPass)
+        private async Task ProcessJobInOrder(CannoliModuleEventJob job, object parameter)
         {
             var thisTurn = new TaskCompletionSource<bool>();
 
-            var previousTurn = GetTurnToAwait(item.Route.StateId, thisTurn);
+            var previousTurn = _turnManager.GetTurnToAwait(job.Route.StateId, thisTurn);
 
             if (previousTurn != null)
             {
@@ -69,52 +55,20 @@ namespace CannoliKit.Processors.Core
 
             try
             {
-                await ProcessRoute(item.Route, paramToPass);
+                await _router.RouteToModuleCallback(job.Route, parameter);
             }
             catch (Exception ex)
             {
-                await EmitLog(new LogMessage(
-                    LogSeverity.Error,
-                    GetType().Name,
-                    ex.Message,
-                    ex));
+                //await EmitLog(new LogMessage(
+                //    LogSeverity.Error,
+                //    GetType().Name,
+                //    ex.Message,
+                //    ex));
             }
             finally
             {
                 thisTurn.SetResult(true);
-                CleanupTurns();
-            }
-        }
-
-        private TaskCompletionSource<bool>? GetTurnToAwait(string stateId, TaskCompletionSource<bool> nextTurn)
-        {
-            lock (_turns)
-            {
-                TaskCompletionSource<bool>? currentTurn = null;
-
-                if (_turns.TryGetValue(stateId, out var tcs))
-                {
-                    currentTurn = tcs;
-                }
-
-                _turns[stateId] = nextTurn;
-
-                return currentTurn;
-            }
-        }
-
-        private void CleanupTurns()
-        {
-            lock (_turns)
-            {
-                var completedEntries = _turns
-                    .Where(x => x.Value.Task.IsCompleted)
-                    .ToList();
-
-                foreach (var completedEntry in completedEntries)
-                {
-                    _turns.TryRemove(completedEntry.Key, out _);
-                }
+                _turnManager.CleanupTurns();
             }
         }
     }

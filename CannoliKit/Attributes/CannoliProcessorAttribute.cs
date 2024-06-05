@@ -3,7 +3,7 @@
     [AttributeUsage(AttributeTargets.Class)]
     public class CannoliProcessorAttribute : Attribute
     {
-        public readonly int MaxConcurrentJobs;
+        public int MaxConcurrentJobs { get; }
 
         public CannoliProcessorAttribute(int maxConcurrentJobs)
         {

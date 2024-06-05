@@ -1,6 +1,7 @@
 ﻿using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Processors.Channels;
+using CannoliKit.Workers;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
@@ -8,7 +9,7 @@ using Timer = System.Timers.Timer;
 
 namespace CannoliKit.Processors;
 
-public sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>
+internal sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IServiceScopeFactory _scopeFactory;
@@ -20,17 +21,15 @@ public sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>
     internal delegate Task LogEventHandler(LogMessage e);
     internal event LogEventHandler? Log;
 
-    internal CannoliJobQueue(
+    public CannoliJobQueue(
         IServiceProvider serviceProvider,
-        IServiceScopeFactory serviceScopeFactory)
+        IServiceScopeFactory serviceScopeFactory,
+        CannoliJobQueueOptions? options = null)
     {
         _serviceProvider = serviceProvider;
         _scopeFactory = serviceScopeFactory;
         _channel = new PriorityChannel<TJob>();
-
-
-
-        _maxConcurrentJobsCount = attribute?.MaxConcurrentJobs ?? int.MaxValue;
+        _maxConcurrentJobsCount = options?.MaxConcurrentJobs ?? int.MaxValue;
         _isRunning = true;
         _isDisposed = false;
         _taskSemaphore = new SemaphoreSlim(_maxConcurrentJobsCount, _maxConcurrentJobsCount);
@@ -39,7 +38,7 @@ public sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>
         Task.Run(InitializeTaskQueue);
     }
 
-    protected async Task EmitLog(LogMessage logMessage)
+    private async Task EmitLog(LogMessage logMessage)
     {
         if (Log == null) return;
 
