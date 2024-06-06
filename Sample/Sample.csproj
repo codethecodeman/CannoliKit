@@ -20,4 +20,10 @@
     <ProjectReference Include="..\CannoliKit\CannoliKit.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="token.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

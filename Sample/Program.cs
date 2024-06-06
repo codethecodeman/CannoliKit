@@ -1,8 +1,10 @@
 ﻿using CannoliKit.Extensions;
 using CannoliKit.Interfaces;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 
 namespace Sample
 {
@@ -36,7 +38,16 @@ namespace Sample
 
             var discordClient = serviceProvider.GetRequiredService<DiscordSocketClient>();
 
+            discordClient.LoggedIn += async () =>
+            {
+                cannoliClient.Setup();
+            };
 
+            var json = await File.ReadAllTextAsync(Path.Combine(appPath, "token.json"));
+            var jsonDoc = JsonDocument.Parse(json);
+            var token = jsonDoc.RootElement.GetProperty("discord-token").GetString();
+
+            await discordClient.LoginAsync(TokenType.Bot, token);
 
             await Task.Delay(-1);
         }

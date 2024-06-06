@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CannoliKit.Modules
 {
-    public abstract class CannoliModule<TContext, TState>
+    public abstract class CannoliModule<TContext, TState> : ICannoliModule
         where TContext : DbContext, ICannoliDbContext
         where TState : CannoliModuleState, new()
     {
@@ -117,7 +117,7 @@ namespace CannoliKit.Modules
                 embeds = null;
             }
 
-            await SaveModuleState();
+            await ((ICannoliModule)this).SaveModuleState();
 
             return new CannoliModuleComponents(
                 content,
@@ -137,7 +137,7 @@ namespace CannoliKit.Modules
             await modal.ModifyOriginalResponseAsync(this);
         }
 
-        internal async Task SaveModuleState()
+        async Task ICannoliModule.SaveModuleState()
         {
             if (State.IsExpiringNow) return;
             if (State.IsSaved) return;
@@ -145,16 +145,21 @@ namespace CannoliKit.Modules
             RouteManager.AddRoutes();
         }
 
-        internal async Task LoadModuleState(string stateId)
+        async Task ICannoliModule.LoadModuleState(CannoliRoute route)
         {
+            if (route.StateIdToBeDeleted != null)
+            {
+                await SaveStateUtility.RemoveState(Db, route.StateIdToBeDeleted);
+            }
+
             var state = await SaveStateUtility.GetState<TState>(
                 Db,
-                stateId);
+                route.StateId);
 
             if (state == null)
             {
                 throw new ModuleStateNotFoundException(
-                    $"Unable to find module state {stateId}");
+                    $"Unable to find module state {route.StateId}");
             }
 
             state.Db = Db;

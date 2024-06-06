@@ -1,26 +1,35 @@
 ﻿using CannoliKit.Interfaces;
 using CannoliKit.Models;
-using Microsoft.EntityFrameworkCore;
+using CannoliKit.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CannoliKit.Modules
 {
-    internal class CannoliModuleRouter<TContext> : ICannoliModuleRouter
-        where TContext : DbContext, ICannoliDbContext
+    internal class CannoliModuleRouter : ICannoliModuleRouter
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly TContext _dbContext;
 
         public CannoliModuleRouter(
-            IServiceProvider serviceProvider,
-            TContext dbContext)
+            IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _dbContext = dbContext;
         }
 
         public async Task RouteToModuleCallback(CannoliRoute route, object parameter)
         {
-            throw new NotImplementedException();
+
+            var classType = ReflectionUtility.GetType(route.CallbackType)!;
+
+            var callbackMethodInfo = ReflectionUtility.GetMethodInfo(classType, route.CallbackMethod)!;
+
+            var target = (ICannoliModule)_serviceProvider.GetRequiredService(classType);
+
+            await target.LoadModuleState(route);
+
+            var callbackTask = (Task)callbackMethodInfo.Invoke(target, [parameter, route])!;
+            await callbackTask;
+
+            await target.SaveModuleState();
         }
     }
 }
