@@ -2,6 +2,6 @@
 {
     public interface ICannoliClient
     {
-        void Setup();
+        Task SetupAsync();
     }
 }

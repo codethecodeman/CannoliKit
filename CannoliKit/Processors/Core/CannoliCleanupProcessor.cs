@@ -10,7 +10,7 @@ namespace CannoliKit.Processors.Core
     {
         private readonly TContext _db;
 
-        internal CannoliCleanupProcessor(
+        public CannoliCleanupProcessor(
             TContext db)
         {
             _db = db;

@@ -7,7 +7,7 @@ namespace Sample.Processors.MealOrder
     internal class MealOrderProcessor : ICannoliProcessor<MealOrderJob>
     {
         public MealOrderProcessor(
-            SampleDbContext dbContext,
+            DemoDbContext dbContext,
             ICannoliJobQueue<MealOrderJob> jobQueue)
         {
 

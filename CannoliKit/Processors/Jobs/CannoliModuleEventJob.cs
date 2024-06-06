@@ -3,12 +3,14 @@ using Discord.WebSocket;
 
 namespace CannoliKit.Workers.Jobs
 {
-    internal class CannoliModuleEventJob
+    public sealed class CannoliModuleEventJob
     {
-        public CannoliRoute Route { get; init; } = null!;
+        internal CannoliModuleEventJob() { }
 
-        public SocketMessageComponent? SocketMessageComponent { get; init; }
+        internal CannoliRoute Route { get; init; } = null!;
 
-        public SocketModal? SocketModal { get; init; }
+        internal SocketMessageComponent? SocketMessageComponent { get; init; }
+
+        internal SocketModal? SocketModal { get; init; }
     }
 }

@@ -2,8 +2,9 @@
 
 namespace CannoliKit.Workers.Jobs
 {
-    internal sealed class CannoliCommandJob
+    public sealed class CannoliCommandJob
     {
+        internal CannoliCommandJob() { }
         internal SocketCommandBase SocketCommand { get; init; } = null!;
     }
 }

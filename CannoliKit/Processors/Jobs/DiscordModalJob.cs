@@ -2,8 +2,9 @@
 
 namespace CannoliKit.Workers.Jobs
 {
-    internal sealed class DiscordModalJob
+    public sealed class DiscordModalJob
     {
-        public SocketModal Modal { get; set; } = null!;
+        internal DiscordModalJob() { }
+        internal SocketModal Modal { get; set; } = null!;
     }
 }

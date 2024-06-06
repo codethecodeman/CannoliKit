@@ -1,29 +1,37 @@
-﻿using CannoliKit.Attributes;
+﻿using CannoliKit.Commands;
 using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
 using CannoliKit.Processors.Jobs;
 using CannoliKit.Utilities;
 using CannoliKit.Workers.Jobs;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CannoliKit
 {
     public class CannoliClient : ICannoliClient
     {
-        private readonly IServiceProvider _serviceProvider;
         private readonly DiscordSocketClient _discordClient;
         private readonly CannoliRegistry _registry;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly ILogger<ICannoliClient> _logger;
         private readonly ICannoliJobQueue<CannoliCommandJob> _commandJobQueue;
         private readonly ICannoliJobQueue<CannoliModuleEventJob> _moduleEventJobQueue;
         private readonly ICannoliJobQueue<CannoliCleanupJob> _cleanupJobQueue;
 
         public CannoliClient(
+            DiscordSocketClient discordClient,
             IServiceProvider serviceProvider,
-            DiscordSocketClient discordClient)
+            IServiceScopeFactory serviceScopeFactory,
+            ILogger<ICannoliClient> logger)
         {
             _serviceProvider = serviceProvider;
+            _serviceScopeFactory = serviceScopeFactory;
+            _logger = logger;
             _discordClient = discordClient;
             _registry = _serviceProvider.GetRequiredService<CannoliRegistry>();
             _commandJobQueue = _serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliCommandJob>>();
@@ -33,36 +41,75 @@ namespace CannoliKit
 
         internal IReadOnlyDictionary<string, Type> Commands => throw new NotImplementedException();
 
-        public void Setup()
+        public async Task SetupAsync()
         {
-            LoadCommandAttributes();
+            await LoadCommands();
             InitializeWorkers();
+            SubscribeLoggedInEvent();
             SubscribeCommandEvents();
             SubscribeMessageComponentEvents();
             SubscribeModalEvents();
         }
 
-        private void LoadCommandAttributes()
+        private void SubscribeLoggedInEvent()
         {
-            var types = _serviceProvider.GetServices<ICannoliCommand>();
+            _discordClient.Ready += RegisterCommands;
+        }
 
-            foreach (var type in types)
+        private async Task RegisterCommands()
+        {
+            if (_registry.Commands.IsEmpty) return;
+
+            var remoteGlobalCommands = await _discordClient.GetGlobalApplicationCommandsAsync();
+
+            foreach (var globalCommand in remoteGlobalCommands)
             {
-                var commandAttribute = (CannoliCommandAttribute?)
-                    type
-                    .GetType()
-                    .GetCustomAttributes(typeof(CannoliCommandAttribute), true)
-                    .FirstOrDefault();
-
-                if (commandAttribute == null)
+                if (_registry.Commands.Keys.Any(c => c == globalCommand.Name))
                 {
-                    throw new InvalidOperationException(
-                        $"Type {nameof(type)} is missing {nameof(CannoliCommandAttribute)} and cannot be loaded");
+                    continue;
                 }
 
-                var commandName = commandAttribute.CommandName;
-                _registry.Commands[commandName] = type.GetType();
-                _registry.CommandAttributes[commandName] = commandAttribute;
+                await globalCommand.DeleteAsync();
+
+                _logger.LogInformation(
+                    "Deleted global command {commandName}",
+                    globalCommand.Name);
+            }
+
+            using var scope = _serviceScopeFactory.CreateScope();
+            var commands = scope.ServiceProvider.GetServices<ICannoliCommand>();
+
+            var properties = new List<ApplicationCommandProperties>();
+
+            foreach (var command in commands)
+            {
+                properties.Add(await command.BuildAsync());
+            }
+
+            await _discordClient.BulkOverwriteGlobalApplicationCommandsAsync(
+                properties.ToArray());
+
+            foreach (var commandName in _registry.Commands.Keys)
+            {
+                _logger.LogInformation(
+                    "Registered global command {commandName}",
+                    commandName);
+            }
+        }
+
+        private async Task LoadCommands()
+        {
+            var commands = _serviceProvider.GetServices<ICannoliCommand>();
+
+            foreach (var command in commands)
+            {
+                _registry.Commands[command.Name] = new CannoliCommandMeta
+                {
+                    Name = command.Name,
+                    DeferralType = command.DeferralType,
+                    ApplicationCommandProperties = await command.BuildAsync(),
+                    Type = command.GetType()
+                };
             }
         }
 
@@ -86,7 +133,7 @@ namespace CannoliKit
 
         private async Task EnqueueCommandEvent(SocketCommandBase arg)
         {
-            _registry.CommandAttributes.TryGetValue(arg.CommandName, out var attributes);
+            _registry.Commands.TryGetValue(arg.CommandName, out var attributes);
 
             if (attributes == null) return;
 

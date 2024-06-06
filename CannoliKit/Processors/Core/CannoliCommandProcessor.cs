@@ -15,7 +15,7 @@ namespace CannoliKit.Processors.Core
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger _logger;
 
-        internal CannoliCommandProcessor(
+        public CannoliCommandProcessor(
             CannoliRegistry registry,
             ICannoliClient cannoliClient,
             IServiceProvider serviceProvider,
@@ -31,9 +31,9 @@ namespace CannoliKit.Processors.Core
         {
             var commandName = job.SocketCommand.CommandName;
 
-            _registry.Commands.TryGetValue(commandName, out var commandType);
+            _registry.Commands.TryGetValue(commandName, out var attributes);
 
-            if (commandType == null)
+            if (attributes == null)
             {
                 throw new InvalidOperationException(
                     $"Unable to find registered Cannoli command with name \"{commandName}\"");
@@ -45,7 +45,7 @@ namespace CannoliKit.Processors.Core
                 job.SocketCommand.User.Id,
                 job.SocketCommand.User.Username);
 
-            var command = (ICannoliCommand)_serviceProvider.GetRequiredService(commandType);
+            var command = (ICannoliCommand)_serviceProvider.GetRequiredService(attributes.Type);
 
             await command.RespondAsync(BuildContext(job));
         }

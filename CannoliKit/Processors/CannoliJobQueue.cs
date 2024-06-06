@@ -4,16 +4,18 @@ using CannoliKit.Processors.Channels;
 using CannoliKit.Workers;
 using Discord;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using Timer = System.Timers.Timer;
 
 namespace CannoliKit.Processors;
 
-internal sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>
+internal sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>, IDisposable
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ICannoliWorkerChannel<TJob> _channel;
+    private readonly ILogger<ICannoliJobQueue<TJob>> _logger;
     private readonly ConcurrentBag<Timer> _repeatingWorkTimers;
     private readonly SemaphoreSlim _taskSemaphore;
     private readonly int _maxConcurrentJobsCount;
@@ -24,10 +26,12 @@ internal sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>
     public CannoliJobQueue(
         IServiceProvider serviceProvider,
         IServiceScopeFactory serviceScopeFactory,
+        ILogger<ICannoliJobQueue<TJob>> logger,
         CannoliJobQueueOptions? options = null)
     {
         _serviceProvider = serviceProvider;
         _scopeFactory = serviceScopeFactory;
+        _logger = logger;
         _channel = new PriorityChannel<TJob>();
         _maxConcurrentJobsCount = options?.MaxConcurrentJobs ?? int.MaxValue;
         _isRunning = true;
@@ -118,11 +122,10 @@ internal sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>
         }
         catch (Exception ex)
         {
-            await EmitLog(new LogMessage(
-                LogSeverity.Error,
-                GetType().Name,
-                ex.Message,
-                ex));
+            _logger.LogCritical(
+                ex,
+                "Unable to process job. {exceptionMessage}",
+                ex.Message);
         }
     }
 

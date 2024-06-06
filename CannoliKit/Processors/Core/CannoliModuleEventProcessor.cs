@@ -4,7 +4,7 @@ using CannoliKit.Workers.Jobs;
 
 namespace CannoliKit.Processors.Core
 {
-    internal class CannoliModuleEventProcessor : ICannoliProcessor<CannoliModuleEventJob>
+    internal sealed class CannoliModuleEventProcessor : ICannoliProcessor<CannoliModuleEventJob>
     {
         private readonly TurnManager _turnManager;
         private readonly ICannoliModuleRouter _router;

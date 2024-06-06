@@ -1,11 +1,10 @@
-﻿using CannoliKit.Attributes;
+﻿using CannoliKit.Commands;
 using System.Collections.Concurrent;
 
 namespace CannoliKit
 {
     internal class CannoliRegistry
     {
-        internal ConcurrentDictionary<string, Type> Commands { get; } = [];
-        internal ConcurrentDictionary<string, CannoliCommandAttribute> CommandAttributes { get; } = [];
+        internal ConcurrentDictionary<string, CannoliCommandMeta> Commands { get; } = [];
     }
 }
