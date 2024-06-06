@@ -10,16 +10,16 @@ namespace CannoliKit.Processors.Core
 {
     internal sealed class CannoliCommandProcessor : ICannoliProcessor<CannoliCommandJob>
     {
-        private CannoliRegistry _registry;
+        private readonly CannoliRegistry _registry;
         private readonly ICannoliClient _cannoliClient;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ILogger _logger;
+        private readonly ILogger<CannoliCommandJob> _logger;
 
         public CannoliCommandProcessor(
             CannoliRegistry registry,
             ICannoliClient cannoliClient,
             IServiceProvider serviceProvider,
-            ILogger logger)
+            ILogger<CannoliCommandJob> logger)
         {
             _registry = registry;
             _cannoliClient = cannoliClient;
@@ -69,7 +69,7 @@ namespace CannoliKit.Processors.Core
                 else
                 {
                     subCommand = slashCommand.Data.Options
-                        .First(x => x.Type == ApplicationCommandOptionType.SubCommand);
+                        .FirstOrDefault(x => x.Type == ApplicationCommandOptionType.SubCommand);
                 }
             }
 

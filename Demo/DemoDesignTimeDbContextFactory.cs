@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Demo.Helpers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace Sample
+namespace Demo
 {
     internal class DemoDesignTimeDbContextFactory : IDesignTimeDbContextFactory<DemoDbContext>
     {
@@ -10,23 +11,11 @@ namespace Sample
             return GenerateDbContext();
         }
 
-        public DemoDbContext CreateDbContext()
-        {
-            return GenerateDbContext();
-        }
-
-        internal string GetConnectionString()
-        {
-            var path = AppContext.BaseDirectory;
-            var dbPath = Path.Join(path, "demo.db");
-            return $"Data Source={dbPath}";
-        }
-
-        private DemoDbContext GenerateDbContext()
+        private static DemoDbContext GenerateDbContext()
         {
             var optionsBuilder = new DbContextOptionsBuilder<DemoDbContext>();
 
-            optionsBuilder.UseSqlite();
+            optionsBuilder.UseSqlite(ConfigurationHelper.GetDbConnectionString());
 
             return new DemoDbContext(optionsBuilder.Options);
         }

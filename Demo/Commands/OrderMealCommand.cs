@@ -3,7 +3,7 @@ using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using Discord;
 
-namespace Sample.Commands
+namespace Demo.Commands
 {
     internal class OrderMealCommand : ICannoliCommand
     {

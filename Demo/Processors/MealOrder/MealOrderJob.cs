@@ -1,7 +1,7 @@
-﻿namespace Sample.Processors.MealOrder
+﻿namespace Demo.Processors.MealOrder
 {
     internal class MealOrderJob
     {
-        public string Request { get; init; } = null!;
+        internal string Request { get; init; } = null!;
     }
 }

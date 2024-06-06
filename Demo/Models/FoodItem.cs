@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Sample.Models
+namespace Demo.Models
 {
     public class FoodItem
     {

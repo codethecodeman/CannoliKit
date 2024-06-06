@@ -1,7 +1,7 @@
 ﻿using CannoliKit.Attributes;
 using CannoliKit.Interfaces;
 
-namespace Sample.Processors.MealOrder
+namespace Demo.Processors.MealOrder
 {
     [CannoliProcessor(maxConcurrentJobs: 4)]
     internal class MealOrderProcessor : ICannoliProcessor<MealOrderJob>

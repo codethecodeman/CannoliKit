@@ -1,28 +1,34 @@
 ﻿using CannoliKit.Extensions;
 using CannoliKit.Interfaces;
+using Demo.Extensions;
+using Demo.Helpers;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
-namespace Sample
+namespace Demo
 {
     public class Program
     {
+        private ILogger<DiscordSocketClient> _discordSocketClientLogger = null!;
+
         public static Task Main() => new Program().MainAsync();
 
-        public async Task MainAsync()
+        internal async Task MainAsync()
         {
-            var appPath = AppContext.BaseDirectory;
-
             var collection = new ServiceCollection();
 
             collection.AddLogging(c =>
             {
-                c.AddConsole();
                 c.SetMinimumLevel(LogLevel.Information);
+                c.AddSimpleConsole(options =>
+                {
+                    options.SingleLine = true;
+                    options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
+                });
             });
 
             collection.AddSingleton(new DiscordSocketConfig()
@@ -32,14 +38,17 @@ namespace Sample
 
             collection.AddSingleton(new DiscordSocketClient());
 
-            var dbContextFactory = new DemoDesignTimeDbContextFactory();
-
             collection.AddDbContext<DemoDbContext>(opt =>
-                opt.UseSqlite(dbContextFactory.GetConnectionString()));
+                opt.UseSqlite(ConfigurationHelper.GetDbConnectionString())
+                    .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug))));
 
             collection.AddCannoliServices<DemoDbContext>();
 
             var serviceProvider = collection.BuildServiceProvider();
+
+            _discordSocketClientLogger = serviceProvider.GetRequiredService<ILogger<DiscordSocketClient>>();
+
+            await serviceProvider.InitDatabaseAsync();
 
             var cannoliClient = serviceProvider.GetRequiredService<ICannoliClient>();
 
@@ -47,11 +56,9 @@ namespace Sample
 
             var discordClient = serviceProvider.GetRequiredService<DiscordSocketClient>();
 
-            var json = await File.ReadAllTextAsync(Path.Combine(appPath, "token.json"));
-            var jsonDoc = JsonDocument.Parse(json);
-            var token = jsonDoc.RootElement.GetProperty("discord-token").GetString();
+            discordClient.Log += m => _discordSocketClientLogger.HandleLogMessage(m);
 
-            await discordClient.LoginAsync(TokenType.Bot, token);
+            await discordClient.LoginAsync(TokenType.Bot, ConfigurationHelper.GetDiscordToken());
             await discordClient.StartAsync();
 
             await Task.Delay(-1);

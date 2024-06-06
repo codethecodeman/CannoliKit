@@ -49,6 +49,7 @@ namespace CannoliKit
             SubscribeCommandEvents();
             SubscribeMessageComponentEvents();
             SubscribeModalEvents();
+            _logger.LogInformation("Setup completed");
         }
 
         private void SubscribeLoggedInEvent()

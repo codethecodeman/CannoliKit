@@ -98,6 +98,7 @@ namespace CannoliKit.Extensions
             foreach (var command in commands)
             {
                 services.AddTransient(typeof(ICannoliCommand), command);
+                services.AddTransient(command);
             }
         }
 

@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Sample.Models
+namespace Demo.Models
 {
-    internal class MealOrder
+    public class MealOrder
     {
         [Key]
         public int Id { get; set; }
