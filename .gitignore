@@ -398,4 +398,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 # CannoliKit
-/Sample/token.json
+/Demo/token.json
