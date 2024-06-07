@@ -3,7 +3,7 @@ using Discord.WebSocket;
 
 namespace CannoliKit.Commands
 {
-    public class CannoliCommandContext
+    public sealed class CannoliCommandContext
     {
         public SocketCommandBase Command { get; init; } = null!;
         public IApplicationCommandInteractionDataOption? SubCommandGroup { get; init; }

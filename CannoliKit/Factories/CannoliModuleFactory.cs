@@ -2,7 +2,7 @@
 
 namespace CannoliKit.Factories
 {
-    public class CannoliModuleFactory : ICannoliModuleFactory
+    public sealed class CannoliModuleFactory : ICannoliModuleFactory
     {
     }
 }

@@ -14,7 +14,7 @@ internal sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>, IDisposabl
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ICannoliWorkerChannel<TJob> _channel;
+    private readonly ICannoliJobQueueChannel<TJob> _channel;
     private readonly ILogger<ICannoliJobQueue<TJob>> _logger;
     private readonly ConcurrentBag<Timer> _repeatingWorkTimers;
     private readonly SemaphoreSlim _taskSemaphore;

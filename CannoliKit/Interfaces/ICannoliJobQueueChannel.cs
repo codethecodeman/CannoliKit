@@ -2,7 +2,7 @@
 
 namespace CannoliKit.Interfaces
 {
-    internal interface ICannoliWorkerChannel<T>
+    internal interface ICannoliJobQueueChannel<T>
     {
         void Write(T item, Priority priority);
         Task<T> ReadAsync();

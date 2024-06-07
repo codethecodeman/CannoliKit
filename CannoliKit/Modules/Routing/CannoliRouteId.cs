@@ -2,7 +2,7 @@
 
 namespace CannoliKit.Modules.Routing
 {
-    public class CannoliRouteId
+    public sealed class CannoliRouteId
     {
         internal string RouteId { get; }
         internal CannoliRoute? Route { get; set; }

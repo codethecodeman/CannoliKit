@@ -5,9 +5,9 @@ namespace CannoliKit.Commands
 {
     internal sealed class CannoliCommandMeta
     {
-        internal string Name { get; init; }
+        internal string Name { get; init; } = null!;
         internal DeferralType DeferralType { get; init; }
-        internal ApplicationCommandProperties ApplicationCommandProperties { get; init; }
-        internal Type Type { get; init; }
+        internal ApplicationCommandProperties ApplicationCommandProperties { get; init; } = null!;
+        internal Type Type { get; init; } = null!;
     }
 }

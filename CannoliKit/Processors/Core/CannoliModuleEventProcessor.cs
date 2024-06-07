@@ -1,20 +1,23 @@
 ﻿using CannoliKit.Concurrency;
 using CannoliKit.Interfaces;
+using CannoliKit.Models;
+using CannoliKit.Utilities;
 using CannoliKit.Workers.Jobs;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CannoliKit.Processors.Core
 {
     internal sealed class CannoliModuleEventProcessor : ICannoliProcessor<CannoliModuleEventJob>
     {
         private readonly TurnManager _turnManager;
-        private readonly ICannoliModuleRouter _router;
+        private readonly IServiceProvider _serviceProvider;
 
         public CannoliModuleEventProcessor(
             TurnManager turnManager,
-            ICannoliModuleRouter router)
+            IServiceProvider serviceProvider)
         {
             _turnManager = turnManager;
-            _router = router;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task HandleJobAsync(CannoliModuleEventJob job)
@@ -32,7 +35,7 @@ namespace CannoliKit.Processors.Core
 
             if (job.Route.IsSynchronous == false)
             {
-                await _router.RouteToModuleCallback(job.Route, paramToPass);
+                await RouteToModuleCallback(job.Route, paramToPass);
 
                 return;
             }
@@ -40,6 +43,21 @@ namespace CannoliKit.Processors.Core
             await ProcessJobInOrder(job, paramToPass);
 
             await Task.CompletedTask;
+        }
+
+        private async Task RouteToModuleCallback(CannoliRoute route, object parameter)
+        {
+            var classType = ReflectionUtility.GetType(route.CallbackType)!;
+
+            var callbackMethodInfo = ReflectionUtility.GetMethodInfo(classType, route.CallbackMethod)!;
+
+            var target = (ICannoliModule)_serviceProvider.GetRequiredService(classType);
+            await target.LoadModuleState(route);
+
+            var callbackTask = (Task)callbackMethodInfo.Invoke(target, [parameter, route])!;
+            await callbackTask;
+
+            await target.SaveModuleState();
         }
 
         private async Task ProcessJobInOrder(CannoliModuleEventJob job, object parameter)
@@ -55,7 +73,7 @@ namespace CannoliKit.Processors.Core
 
             try
             {
-                await _router.RouteToModuleCallback(job.Route, parameter);
+                await RouteToModuleCallback(job.Route, parameter);
             }
             catch (Exception ex)
             {

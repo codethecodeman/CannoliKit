@@ -4,7 +4,7 @@ using System.Threading.Channels;
 
 namespace CannoliKit.Processors.Channels
 {
-    internal sealed class PriorityChannel<T> : ICannoliWorkerChannel<T>, IDisposable
+    internal sealed class PriorityChannel<T> : ICannoliJobQueueChannel<T>, IDisposable
     {
         private readonly Channel<T> _highPriorityChannel;
         private readonly Channel<T> _normalPriorityChannel;

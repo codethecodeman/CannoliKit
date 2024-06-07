@@ -1,7 +1,7 @@
 ﻿namespace CannoliKit.Attributes
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class CannoliProcessorAttribute : Attribute
+    public sealed class CannoliProcessorAttribute : Attribute
     {
         public int MaxConcurrentJobs { get; }
 

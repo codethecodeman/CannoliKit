@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace CannoliKit.Converters
 {
-    internal class CannoliRouteIdJsonConverter : JsonConverter<CannoliRouteId>
+    internal sealed class CannoliRouteIdJsonConverter : JsonConverter<CannoliRouteId>
     {
         public override CannoliRouteId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
