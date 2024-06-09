@@ -129,16 +129,6 @@ namespace CannoliKit.Modules
 
         protected abstract Task<CannoliModuleParts> SetupModule();
 
-        protected async Task UpdateModule(SocketMessageComponent messageComponent)
-        {
-            await messageComponent.ModifyOriginalResponseAsync(this);
-        }
-
-        protected async Task UpdateModule(SocketModal modal)
-        {
-            await modal.ModifyOriginalResponseAsync(this);
-        }
-
         internal override async Task SaveModuleState()
         {
             if (State.IsExpiringNow) return;
@@ -161,7 +151,7 @@ namespace CannoliKit.Modules
             if (state == null)
             {
                 throw new ModuleStateNotFoundException(
-                    $"Unable to find module state {route.StateId}");
+                    $"Unable to find module state {route.StateId}.");
             }
 
             state.Db = Db;
@@ -202,7 +192,7 @@ namespace CannoliKit.Modules
                 CustomId = await RouteManager.CreateMessageComponentRoute(
                     callback: OnModulePageChanged,
                     parameter1: (Pagination.PageNumber - 1).ToString()),
-                Emote = Emoji.Parse("⬅️"),
+                Emote = Pagination.PreviousArrowEmoji,
                 Style = ButtonStyle.Secondary,
             });
 
@@ -211,7 +201,7 @@ namespace CannoliKit.Modules
                 CustomId = await RouteManager.CreateMessageComponentRoute(
                     callback: OnModulePageChanged,
                     parameter1: (Pagination.PageNumber + 1).ToString()),
-                Emote = Emoji.Parse("➡️"),
+                Emote = Pagination.NextArrowEmoji,
                 Style = ButtonStyle.Secondary,
             });
 

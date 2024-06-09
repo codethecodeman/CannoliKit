@@ -154,7 +154,15 @@ namespace Demo.Modules.Cart
 
         private async Task OnCheckout(SocketMessageComponent messageComponent, CannoliRoute route)
         {
+            await messageComponent.ModifyOriginalResponseAsync(x =>
+            {
+                x.Embeds = null;
+                x.Components = null;
+                x.Content =
+                    $"Ok, your order is placed and will be fulfulled shortly! For reference your Cart ID is `{State.CartId}`.";
+            });
 
+            await State.ExpireNow();
         }
 
         private async Task OnOpenMenu(SocketMessageComponent messageComponent, CannoliRoute route)

@@ -5,6 +5,8 @@ namespace CannoliKit.Modules.Pagination
 {
     public sealed class Pagination
     {
+        public Emoji PreviousArrowEmoji { get; set; } = new("⬅️");
+        public Emoji NextArrowEmoji { get; set; } = new("➡️");
         public bool IsEnabled { get; set; }
         public int NumItemsPerField { get; set; } = 10;
         public int NumItemsPerPage { get; set; } = 10;
@@ -12,8 +14,7 @@ namespace CannoliKit.Modules.Pagination
         public int NumItems { get; private set; }
         public int NumPages { get; private set; }
         public int PageNumber { get; internal set; }
-        private int ListStartIndex { get; set; }
-
+        private int _listStartIndex;
         private bool _isSetup;
 
         internal Pagination() { }
@@ -35,7 +36,7 @@ namespace CannoliKit.Modules.Pagination
                 PageNumber = 0;
             }
 
-            ListStartIndex = NumItemsPerPage * PageNumber;
+            _listStartIndex = NumItemsPerPage * PageNumber;
 
             _isSetup = true;
         }
@@ -97,11 +98,11 @@ namespace CannoliKit.Modules.Pagination
 
             var pagedItems = new List<ListItem<TItem>>();
 
-            for (var i = ListStartIndex; i < ListStartIndex + NumItemsPerPage; i++)
+            for (var i = _listStartIndex; i < _listStartIndex + NumItemsPerPage; i++)
             {
                 if (i + 1 > items.Count) break;
 
-                var listIndex = resetListCounterBetweenPages ? i + 1 - ListStartIndex : i + 1;
+                var listIndex = resetListCounterBetweenPages ? i + 1 - _listStartIndex : i + 1;
 
                 var marker = listType switch
                 {
@@ -136,13 +137,13 @@ namespace CannoliKit.Modules.Pagination
             if (IsEnabled == false)
             {
                 throw new InvalidOperationException(
-                    "Pagination must be enabled prior to using this feature");
+                    "Pagination must be enabled prior to using this feature.");
             }
 
             if (_isSetup == false)
             {
                 throw new InvalidOperationException(
-                    "Pagination item count must be set prior to using this feature");
+                    "Pagination item count must be set prior to using this feature.");
             }
         }
 
