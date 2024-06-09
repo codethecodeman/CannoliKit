@@ -20,6 +20,7 @@ namespace CannoliKit.Modules
         protected readonly Pagination.Pagination Pagination;
         protected readonly RouteManager RouteManager;
         protected readonly Cancellation.CancellationSettings Cancellation;
+        protected readonly SocketUser User;
         protected TState State { get; private set; }
         protected IReadOnlyDictionary<string, CannoliRouteId> ReturnRoutes => State.ReturnRoutes;
         private const string DefaultCancelRouteName = "CannoliKit.DefaultCancelRoute";
@@ -27,11 +28,12 @@ namespace CannoliKit.Modules
         protected CannoliModule(
             TContext db,
             DiscordSocketClient discordClient,
-            RouteConfiguration? routeConfiguration)
+            CannoliModuleConfiguration configuration)
         {
             Db = db;
             DiscordClient = discordClient;
             Pagination = new Pagination.Pagination();
+            User = configuration.RequestingUser;
 
             State = new TState
             {
@@ -41,14 +43,14 @@ namespace CannoliKit.Modules
             RouteManager = new RouteManager(Db, GetType(), State);
             Cancellation = new Cancellation.CancellationSettings(State);
 
-            if (routeConfiguration?.CancellationRouteId != null)
+            if (configuration.Routing?.CancellationRouteId != null)
             {
-                Cancellation.SetRoute(routeConfiguration.CancellationRouteId);
+                Cancellation.SetRoute(configuration.Routing.CancellationRouteId);
             }
 
-            if (routeConfiguration?.ReturnRouteIds != null)
+            if (configuration.Routing?.ReturnRouteIds != null)
             {
-                foreach (var r in routeConfiguration.ReturnRouteIds)
+                foreach (var r in configuration.Routing.ReturnRouteIds)
                 {
                     r.Value.Route!.StateIdToBeDeleted = State.Id;
                     State.ReturnRoutes.Add(r.Key, r.Value);
@@ -58,9 +60,9 @@ namespace CannoliKit.Modules
 
         internal override async Task<CannoliModuleComponents> BuildComponents()
         {
-            await RouteUtility.RemoveRoutes(Db, State.Id);
-
             var renderParts = await SetupModule();
+
+            await RouteUtility.RemoveRoutes(Db, State.Id);
 
             var content = renderParts.Content;
 
@@ -143,7 +145,6 @@ namespace CannoliKit.Modules
             if (State.IsSaved) return;
             await State.Save();
             RouteManager.AddRoutes();
-            await Db.SaveChangesAsync();
         }
 
         internal override async Task LoadModuleState(CannoliRoute route)

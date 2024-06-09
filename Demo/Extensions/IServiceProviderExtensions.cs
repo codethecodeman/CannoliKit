@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Demo.Helpers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Demo.Extensions
@@ -10,6 +11,9 @@ namespace Demo.Extensions
             using var scope = services.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<DemoDbContext>();
             await context.Database.MigrateAsync();
+            await context.SaveChangesAsync();
+
+            await DataHelper.InsertSampleData(context);
             await context.SaveChangesAsync();
         }
     }

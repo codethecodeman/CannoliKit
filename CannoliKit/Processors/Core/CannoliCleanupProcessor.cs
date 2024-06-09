@@ -31,8 +31,6 @@ namespace CannoliKit.Processors.Core
 
                 _db.CannoliSaveStates.Remove(expiredState);
             }
-
-            await _db.SaveChangesAsync();
         }
     }
 }

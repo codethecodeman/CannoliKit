@@ -26,7 +26,21 @@ namespace Demo.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MealOrders",
+                name: "FoodItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Emoji = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FoodItems", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GroceryOrders",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -37,7 +51,7 @@ namespace Demo.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MealOrders", x => x.Id);
+                    table.PrimaryKey("PK_GroceryOrders", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -69,45 +83,25 @@ namespace Demo.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FoodItems",
+                name: "GroceryOrderItems",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Emoji = table.Column<string>(type: "TEXT", nullable: false),
-                    MealOrderId = table.Column<int>(type: "INTEGER", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_FoodItems", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_FoodItems_MealOrders_MealOrderId",
-                        column: x => x.MealOrderId,
-                        principalTable: "MealOrders",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MealOrderItems",
-                columns: table => new
-                {
-                    MealOrderId = table.Column<int>(type: "INTEGER", nullable: false),
+                    GroceryOrderId = table.Column<int>(type: "INTEGER", nullable: false),
                     FoodItemId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MealOrderItems", x => new { x.MealOrderId, x.FoodItemId });
+                    table.PrimaryKey("PK_GroceryOrderItems", x => new { x.GroceryOrderId, x.FoodItemId });
                     table.ForeignKey(
-                        name: "FK_MealOrderItems_FoodItems_FoodItemId",
+                        name: "FK_GroceryOrderItems_FoodItems_FoodItemId",
                         column: x => x.FoodItemId,
                         principalTable: "FoodItems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_MealOrderItems_MealOrders_MealOrderId",
-                        column: x => x.MealOrderId,
-                        principalTable: "MealOrders",
+                        name: "FK_GroceryOrderItems_GroceryOrders_GroceryOrderId",
+                        column: x => x.GroceryOrderId,
+                        principalTable: "GroceryOrders",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -128,13 +122,8 @@ namespace Demo.Migrations
                 column: "ExpiresOn");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FoodItems_MealOrderId",
-                table: "FoodItems",
-                column: "MealOrderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MealOrderItems_FoodItemId",
-                table: "MealOrderItems",
+                name: "IX_GroceryOrderItems_FoodItemId",
+                table: "GroceryOrderItems",
                 column: "FoodItemId");
         }
 
@@ -145,7 +134,7 @@ namespace Demo.Migrations
                 name: "CannoliRoutes");
 
             migrationBuilder.DropTable(
-                name: "MealOrderItems");
+                name: "GroceryOrderItems");
 
             migrationBuilder.DropTable(
                 name: "CannoliSaveStates");
@@ -154,7 +143,7 @@ namespace Demo.Migrations
                 name: "FoodItems");
 
             migrationBuilder.DropTable(
-                name: "MealOrders");
+                name: "GroceryOrders");
         }
     }
 }

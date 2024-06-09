@@ -1,6 +1,7 @@
 ﻿using CannoliKit.Interfaces;
 using CannoliKit.Modules;
 using CannoliKit.Modules.Routing;
+using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,18 +18,38 @@ namespace CannoliKit.Factories
             _serviceProvider = serviceProvider;
         }
 
-        public T CreateModule<T>(RouteConfiguration? routeConfiguration = null)
+        public T CreateModule<T>(
+            SocketUser requestingUser,
+            RouteConfiguration? routing = null)
             where T : CannoliModuleBase
         {
-            var constructor = typeof(T).GetConstructors().First();
+            return (T)CreateModuleFromType(typeof(T), requestingUser, routing);
+        }
+
+        public CannoliModuleBase CreateModule(
+            Type type,
+            SocketUser requestingUser,
+            RouteConfiguration? routing = null)
+        {
+            return CreateModuleFromType(type, requestingUser, routing);
+        }
+
+        private CannoliModuleBase CreateModuleFromType(
+            Type type,
+            SocketUser requestingUser,
+            RouteConfiguration? routing = null)
+        {
+            var constructor = type.GetConstructors().First();
 
             var parameters = constructor.GetParameters();
 
-            var arguments = parameters.Select(p => p.ParameterType == typeof(RouteConfiguration)
-                ? routeConfiguration
+            var configuration = new CannoliModuleConfiguration(requestingUser, routing);
+
+            var arguments = parameters.Select(p => p.ParameterType == typeof(CannoliModuleConfiguration)
+                ? configuration
                 : _serviceProvider.GetRequiredService(p.ParameterType)).ToArray();
 
-            return (T)Activator.CreateInstance(typeof(T), arguments)!;
+            return (CannoliModuleBase)Activator.CreateInstance(type, arguments)!;
         }
     }
 }

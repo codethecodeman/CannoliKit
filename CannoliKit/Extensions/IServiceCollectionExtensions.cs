@@ -29,39 +29,39 @@ namespace CannoliKit.Extensions
             {
                 if (assembly.GetReferencedAssemblies().Any(a => a.Name == cannoliAssembly.GetName().Name))
                 {
-                    RegisterServicesFromAssembly(services, assembly);
+                    RegisterServicesFromAssembly(services, typeof(TContext), assembly);
                 }
             }
 
             // Add core services.
 
-            services.AddSingleton<ICannoliJobQueue<CannoliCleanupJob>, CannoliJobQueue<CannoliCleanupJob>>();
+            services.AddSingleton<ICannoliJobQueue<CannoliCleanupJob>, CannoliJobQueue<TContext, CannoliCleanupJob>>();
             services.AddTransient<ICannoliProcessor<CannoliCleanupJob>, CannoliCleanupProcessor<TContext>>();
 
-            services.AddSingleton<ICannoliJobQueue<CannoliCommandJob>, CannoliJobQueue<CannoliCommandJob>>();
+            services.AddSingleton<ICannoliJobQueue<CannoliCommandJob>, CannoliJobQueue<TContext, CannoliCommandJob>>();
             services.AddTransient<ICannoliProcessor<CannoliCommandJob>, CannoliCommandProcessor>();
 
-            services.AddSingleton<ICannoliJobQueue<CannoliModuleEventJob>, CannoliJobQueue<CannoliModuleEventJob>>();
+            services.AddSingleton<ICannoliJobQueue<CannoliModuleEventJob>, CannoliJobQueue<TContext, CannoliModuleEventJob>>();
             services.AddTransient<ICannoliProcessor<CannoliModuleEventJob>, CannoliModuleEventProcessor>();
 
-            services.AddScoped<ICannoliModuleFactory, CannoliModuleFactory<TContext>>();
+            services.AddTransient<ICannoliModuleFactory, CannoliModuleFactory<TContext>>();
 
             services.AddSingleton<TurnManager>();
             services.AddSingleton<CannoliRegistry>();
-            services.AddSingleton<ICannoliClient, CannoliClient>();
+            services.AddSingleton<ICannoliClient, CannoliClient<TContext>>();
 
             return services;
         }
 
-        private static void RegisterServicesFromAssembly(IServiceCollection services, Assembly assembly)
+        private static void RegisterServicesFromAssembly(IServiceCollection services, Type dbContextType, Assembly assembly)
         {
             var types = assembly.GetTypes();
 
-            RegisterProcessors(services, types);
+            RegisterProcessors(services, dbContextType, types);
             RegisterCommands(services, types);
         }
 
-        private static void RegisterProcessors(IServiceCollection services, IEnumerable<Type> types)
+        private static void RegisterProcessors(IServiceCollection services, Type dbContextType, IEnumerable<Type> types)
         {
             var processors = FilterTypes(types, typeof(ICannoliProcessor<>));
 
@@ -75,7 +75,7 @@ namespace CannoliKit.Extensions
                 var processorInterfaceType = processor.GetInterface(typeof(ICannoliProcessor<>).Name)!;
                 var jobType = processorInterfaceType.GetGenericArguments()[0];
                 var jobQueueInterfaceType = typeof(ICannoliJobQueue<>).MakeGenericType(jobType);
-                var jobQueueType = typeof(CannoliJobQueue<>).MakeGenericType(jobType);
+                var jobQueueType = typeof(CannoliJobQueue<,>).MakeGenericType(dbContextType, jobType);
 
                 services.AddSingleton(jobQueueInterfaceType, sp =>
                 {

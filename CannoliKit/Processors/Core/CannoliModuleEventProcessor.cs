@@ -1,10 +1,9 @@
 ﻿using CannoliKit.Concurrency;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
-using CannoliKit.Modules;
 using CannoliKit.Utilities;
 using CannoliKit.Workers.Jobs;
-using Microsoft.Extensions.DependencyInjection;
+using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 
 namespace CannoliKit.Processors.Core
@@ -12,60 +11,66 @@ namespace CannoliKit.Processors.Core
     internal sealed class CannoliModuleEventProcessor : ICannoliProcessor<CannoliModuleEventJob>
     {
         private readonly TurnManager _turnManager;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly ICannoliModuleFactory _moduleFactory;
         private readonly ILogger<CannoliModuleEventProcessor> _logger;
 
         public CannoliModuleEventProcessor(
             TurnManager turnManager,
-            IServiceProvider serviceProvider,
+            ICannoliModuleFactory moduleFactory,
             ILogger<CannoliModuleEventProcessor> logger)
         {
             _turnManager = turnManager;
-            _serviceProvider = serviceProvider;
+            _moduleFactory = moduleFactory;
             _logger = logger;
         }
 
         public async Task HandleJobAsync(CannoliModuleEventJob job)
         {
-            object paramToPass = null!;
+            object interaction = null!;
+            SocketUser requestingUser = null!;
 
             if (job.SocketMessageComponent != null)
             {
-                paramToPass = job.SocketMessageComponent;
+                interaction = job.SocketMessageComponent;
+                requestingUser = job.SocketMessageComponent.User;
             }
             else if (job.SocketModal != null)
             {
-                paramToPass = job.SocketModal;
+                interaction = job.SocketModal;
+                requestingUser = job.SocketModal.User;
             }
 
             if (job.Route.IsSynchronous == false)
             {
-                await RouteToModuleCallback(job.Route, paramToPass);
+                await RouteToModuleCallback(job.Route, interaction, requestingUser);
 
                 return;
             }
 
-            await ProcessJobInOrder(job, paramToPass);
+            await ProcessJobInOrder(job, interaction, requestingUser);
 
             await Task.CompletedTask;
         }
 
-        private async Task RouteToModuleCallback(CannoliRoute route, object parameter)
+        private async Task RouteToModuleCallback(CannoliRoute route, object interaction, SocketUser user)
         {
             var classType = ReflectionUtility.GetType(route.CallbackType)!;
 
             var callbackMethodInfo = ReflectionUtility.GetMethodInfo(classType, route.CallbackMethod)!;
 
-            var target = (CannoliModuleBase)_serviceProvider.GetRequiredService(classType);
+            var target = _moduleFactory.CreateModule(
+                classType,
+                user);
+
             await target.LoadModuleState(route);
 
-            var callbackTask = (Task)callbackMethodInfo.Invoke(target, [parameter, route])!;
+            var callbackTask = (Task)callbackMethodInfo.Invoke(target, [interaction, route])!;
             await callbackTask;
 
             await target.SaveModuleState();
         }
 
-        private async Task ProcessJobInOrder(CannoliModuleEventJob job, object parameter)
+        private async Task ProcessJobInOrder(CannoliModuleEventJob job, object interaction, SocketUser user)
         {
             var thisTurn = new TaskCompletionSource<bool>();
 
@@ -78,7 +83,7 @@ namespace CannoliKit.Processors.Core
 
             try
             {
-                await RouteToModuleCallback(job.Route, parameter);
+                await RouteToModuleCallback(job.Route, interaction, user);
             }
             catch (Exception ex)
             {

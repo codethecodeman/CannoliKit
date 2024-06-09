@@ -3,6 +3,7 @@ using CannoliKit.Interfaces;
 using CannoliKit.Processors.Channels;
 using CannoliKit.Workers;
 using Discord;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
@@ -10,7 +11,8 @@ using Timer = System.Timers.Timer;
 
 namespace CannoliKit.Processors;
 
-internal sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>, IDisposable
+internal sealed class CannoliJobQueue<TContext, TJob> : ICannoliJobQueue<TJob>, IDisposable
+    where TContext : DbContext, ICannoliDbContext
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IServiceScopeFactory _scopeFactory;
@@ -117,8 +119,11 @@ internal sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>, IDisposabl
         {
             using var scope = _scopeFactory.CreateScope();
             var jobHandler = scope.ServiceProvider.GetRequiredService<ICannoliProcessor<TJob>>();
+            var db = scope.ServiceProvider.GetRequiredService<TContext>();
 
             await jobHandler.HandleJobAsync(item);
+
+            await db.SaveChangesAsync();
         }
         catch (Exception ex)
         {

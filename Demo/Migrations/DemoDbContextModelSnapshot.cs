@@ -99,21 +99,16 @@ namespace Demo.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("MealOrderId")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MealOrderId");
-
                     b.ToTable("FoodItems");
                 });
 
-            modelBuilder.Entity("Demo.Models.MealOrder", b =>
+            modelBuilder.Entity("Demo.Models.GroceryOrder", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -131,22 +126,22 @@ namespace Demo.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MealOrders");
+                    b.ToTable("GroceryOrders");
                 });
 
-            modelBuilder.Entity("Demo.Models.MealOrderItem", b =>
+            modelBuilder.Entity("Demo.Models.GroceryOrderItem", b =>
                 {
-                    b.Property<int>("MealOrderId")
+                    b.Property<int>("GroceryOrderId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("FoodItemId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("MealOrderId", "FoodItemId");
+                    b.HasKey("GroceryOrderId", "FoodItemId");
 
                     b.HasIndex("FoodItemId");
 
-                    b.ToTable("MealOrderItems");
+                    b.ToTable("GroceryOrderItems");
                 });
 
             modelBuilder.Entity("CannoliKit.Models.CannoliRoute", b =>
@@ -160,14 +155,7 @@ namespace Demo.Migrations
                     b.Navigation("CannoliSaveState");
                 });
 
-            modelBuilder.Entity("Demo.Models.FoodItem", b =>
-                {
-                    b.HasOne("Demo.Models.MealOrder", null)
-                        .WithMany("FoodItems")
-                        .HasForeignKey("MealOrderId");
-                });
-
-            modelBuilder.Entity("Demo.Models.MealOrderItem", b =>
+            modelBuilder.Entity("Demo.Models.GroceryOrderItem", b =>
                 {
                     b.HasOne("Demo.Models.FoodItem", "FoodItem")
                         .WithMany()
@@ -175,20 +163,20 @@ namespace Demo.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Demo.Models.MealOrder", "MealOrder")
-                        .WithMany()
-                        .HasForeignKey("MealOrderId")
+                    b.HasOne("Demo.Models.GroceryOrder", "GroceryOrder")
+                        .WithMany("Items")
+                        .HasForeignKey("GroceryOrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("FoodItem");
 
-                    b.Navigation("MealOrder");
+                    b.Navigation("GroceryOrder");
                 });
 
-            modelBuilder.Entity("Demo.Models.MealOrder", b =>
+            modelBuilder.Entity("Demo.Models.GroceryOrder", b =>
                 {
-                    b.Navigation("FoodItems");
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

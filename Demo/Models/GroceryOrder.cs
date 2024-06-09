@@ -2,7 +2,7 @@
 
 namespace Demo.Models
 {
-    public class MealOrder
+    public class GroceryOrder
     {
         [Key]
         public int Id { get; set; }
@@ -16,6 +16,6 @@ namespace Demo.Models
         [Required]
         public bool IsFulfilled { get; set; }
 
-        public IList<FoodItem> FoodItems { get; set; } = [];
+        public IList<GroceryOrderItem> Items { get; set; } = [];
     }
 }

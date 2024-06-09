@@ -7,14 +7,14 @@ using Discord;
 
 namespace Demo.Commands
 {
-    internal class OrderMealCommand : ICannoliCommand
+    internal class OrderCommand : ICannoliCommand
     {
-        public string Name => "order-meal";
+        public string Name => "order";
         public DeferralType DeferralType => DeferralType.Ephemeral;
 
         private readonly ICannoliModuleFactory _moduleFactory;
 
-        public OrderMealCommand(
+        public OrderCommand(
             ICannoliModuleFactory moduleFactory)
         {
             _moduleFactory = moduleFactory;
@@ -22,7 +22,7 @@ namespace Demo.Commands
 
         public async Task RespondAsync(CannoliCommandContext context)
         {
-            var cartModule = _moduleFactory.CreateModule<CartModule>();
+            var cartModule = _moduleFactory.CreateModule<CartModule>(context.Command.User);
             await context.Command.FollowupAsync(cartModule);
         }
 
@@ -31,12 +31,14 @@ namespace Demo.Commands
             var builder = new SlashCommandBuilder()
             {
                 Name = Name,
-                Description = Name,
+                Description = "Start a new grocery order",
                 ContextTypes = [
                     InteractionContextType.Guild,
                 ],
                 DefaultMemberPermissions = GuildPermission.Administrator,
             };
+
+            await Task.CompletedTask;
 
             return builder.Build();
         }

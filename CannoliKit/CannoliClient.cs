@@ -7,12 +7,14 @@ using CannoliKit.Utilities;
 using CannoliKit.Workers.Jobs;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace CannoliKit
 {
-    public class CannoliClient : ICannoliClient
+    public class CannoliClient<TContext> : ICannoliClient
+        where TContext : DbContext, ICannoliDbContext
     {
         private readonly DiscordSocketClient _discordClient;
         private readonly CannoliRegistry _registry;
@@ -229,8 +231,10 @@ namespace CannoliKit
         {
             if (RouteUtility.IsValidRouteId(customId) == false) return null;
 
-            // return await RouteUtility.GetRoute(_db, customId);
-            return new CannoliRoute();
+            using var scope = _serviceScopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<TContext>();
+
+            return await RouteUtility.GetRoute(db, customId);
         }
 
         private void InitializeWorkers()

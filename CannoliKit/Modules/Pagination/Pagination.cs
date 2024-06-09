@@ -40,7 +40,7 @@ namespace CannoliKit.Modules.Pagination
             _isSetup = true;
         }
 
-        public List<EmbedFieldBuilder> GetEmbedFieldBuilders(List<string> items)
+        public List<EmbedFieldBuilder> GetEmbedFieldBuilders(IList<string> items)
         {
             EnsureSettingsExist();
 
