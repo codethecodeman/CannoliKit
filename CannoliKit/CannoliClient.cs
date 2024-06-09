@@ -49,7 +49,6 @@ namespace CannoliKit
             SubscribeCommandEvents();
             SubscribeMessageComponentEvents();
             SubscribeModalEvents();
-            _logger.LogInformation("Setup completed");
         }
 
         private void SubscribeLoggedInEvent()
@@ -73,7 +72,7 @@ namespace CannoliKit
                 await globalCommand.DeleteAsync();
 
                 _logger.LogInformation(
-                    "Deleted global command {commandName}",
+                    "Deleted global command {commandName}.",
                     globalCommand.Name);
             }
 
@@ -93,7 +92,7 @@ namespace CannoliKit
             foreach (var commandName in _registry.Commands.Keys)
             {
                 _logger.LogInformation(
-                    "Registered global command {commandName}",
+                    "Registered global command {commandName}.",
                     commandName);
             }
         }

@@ -7,8 +7,8 @@ namespace CannoliKit.Modules
         EmbedBuilder? embedBuilder = null,
         ComponentBuilder? componentBuilder = null)
     {
-        public string? Content { get; } = content;
-        public EmbedBuilder? EmbedBuilder { get; } = embedBuilder;
-        public ComponentBuilder? ComponentBuilder { get; } = componentBuilder;
+        public string? Content { get; init; } = content;
+        public EmbedBuilder? EmbedBuilder { get; init; } = embedBuilder;
+        public ComponentBuilder? ComponentBuilder { get; init; } = componentBuilder;
     }
 }

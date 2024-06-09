@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CannoliKit.Modules
 {
-    public abstract class CannoliModule<TContext, TState> : ICannoliModule
+    public abstract class CannoliModule<TContext, TState> : CannoliModuleBase
         where TContext : DbContext, ICannoliDbContext
         where TState : CannoliModuleState, new()
     {
@@ -56,7 +56,7 @@ namespace CannoliKit.Modules
             }
         }
 
-        public async Task<CannoliModuleComponents> BuildComponents()
+        internal override async Task<CannoliModuleComponents> BuildComponents()
         {
             await RouteUtility.RemoveRoutes(Db, State.Id);
 
@@ -117,7 +117,7 @@ namespace CannoliKit.Modules
                 embeds = null;
             }
 
-            await ((ICannoliModule)this).SaveModuleState();
+            await SaveModuleState();
 
             return new CannoliModuleComponents(
                 content,
@@ -137,15 +137,16 @@ namespace CannoliKit.Modules
             await modal.ModifyOriginalResponseAsync(this);
         }
 
-        async Task ICannoliModule.SaveModuleState()
+        internal override async Task SaveModuleState()
         {
             if (State.IsExpiringNow) return;
             if (State.IsSaved) return;
             await State.Save();
             RouteManager.AddRoutes();
+            await Db.SaveChangesAsync();
         }
 
-        async Task ICannoliModule.LoadModuleState(CannoliRoute route)
+        internal override async Task LoadModuleState(CannoliRoute route)
         {
             if (route.StateIdToBeDeleted != null)
             {

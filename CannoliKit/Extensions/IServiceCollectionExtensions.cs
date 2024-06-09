@@ -1,7 +1,7 @@
 ﻿using CannoliKit.Attributes;
 using CannoliKit.Concurrency;
+using CannoliKit.Factories;
 using CannoliKit.Interfaces;
-using CannoliKit.Modules;
 using CannoliKit.Processors;
 using CannoliKit.Processors.Core;
 using CannoliKit.Processors.Jobs;
@@ -33,7 +33,7 @@ namespace CannoliKit.Extensions
                 }
             }
 
-            // Add core dependencies.
+            // Add core services.
 
             services.AddSingleton<ICannoliJobQueue<CannoliCleanupJob>, CannoliJobQueue<CannoliCleanupJob>>();
             services.AddTransient<ICannoliProcessor<CannoliCleanupJob>, CannoliCleanupProcessor<TContext>>();
@@ -44,7 +44,7 @@ namespace CannoliKit.Extensions
             services.AddSingleton<ICannoliJobQueue<CannoliModuleEventJob>, CannoliJobQueue<CannoliModuleEventJob>>();
             services.AddTransient<ICannoliProcessor<CannoliModuleEventJob>, CannoliModuleEventProcessor>();
 
-            services.AddTransient<ICannoliModuleRouter, CannoliModuleRouter>();
+            services.AddScoped<ICannoliModuleFactory, CannoliModuleFactory<TContext>>();
 
             services.AddSingleton<TurnManager>();
             services.AddSingleton<CannoliRegistry>();

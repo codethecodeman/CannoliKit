@@ -1,16 +1,11 @@
-﻿using CannoliKit.Interfaces;
-using CannoliKit.Modules;
-using CannoliKit.Modules.States;
+﻿using CannoliKit.Modules;
 using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore;
 
 namespace CannoliKit.Extensions
 {
     public static class SocketCommandBaseExtensions
     {
-        public static async Task RespondAsync<TContext, TState>(this SocketCommandBase component, CannoliModule<TContext, TState> module)
-            where TContext : DbContext, ICannoliDbContext
-            where TState : CannoliModuleState, new()
+        public static async Task RespondAsync(this SocketCommandBase component, CannoliModuleBase module)
         {
             var moduleComponents = await module.BuildComponents();
             await component.RespondAsync(
@@ -19,9 +14,16 @@ namespace CannoliKit.Extensions
                 components: moduleComponents.MessageComponent);
         }
 
-        public static async Task ModifyOriginalResponseAsync<TContext, TState>(this SocketCommandBase component, CannoliModule<TContext, TState> module)
-            where TContext : DbContext, ICannoliDbContext
-            where TState : CannoliModuleState, new()
+        public static async Task FollowupAsync(this SocketCommandBase component, CannoliModuleBase module)
+        {
+            var moduleComponents = await module.BuildComponents();
+            await component.FollowupAsync(
+                text: moduleComponents.Content,
+                embeds: moduleComponents.Embeds,
+                components: moduleComponents.MessageComponent);
+        }
+
+        public static async Task ModifyOriginalResponseAsync(this SocketCommandBase component, CannoliModuleBase module)
         {
             var moduleComponents = await module.BuildComponents();
             await component.ModifyOriginalResponseAsync(moduleComponents.ApplyToMessageProperties);

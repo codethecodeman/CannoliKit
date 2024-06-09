@@ -1,9 +1,11 @@
 ﻿using CannoliKit.Concurrency;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
+using CannoliKit.Modules;
 using CannoliKit.Utilities;
 using CannoliKit.Workers.Jobs;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CannoliKit.Processors.Core
 {
@@ -11,13 +13,16 @@ namespace CannoliKit.Processors.Core
     {
         private readonly TurnManager _turnManager;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<CannoliModuleEventProcessor> _logger;
 
         public CannoliModuleEventProcessor(
             TurnManager turnManager,
-            IServiceProvider serviceProvider)
+            IServiceProvider serviceProvider,
+            ILogger<CannoliModuleEventProcessor> logger)
         {
             _turnManager = turnManager;
             _serviceProvider = serviceProvider;
+            _logger = logger;
         }
 
         public async Task HandleJobAsync(CannoliModuleEventJob job)
@@ -51,7 +56,7 @@ namespace CannoliKit.Processors.Core
 
             var callbackMethodInfo = ReflectionUtility.GetMethodInfo(classType, route.CallbackMethod)!;
 
-            var target = (ICannoliModule)_serviceProvider.GetRequiredService(classType);
+            var target = (CannoliModuleBase)_serviceProvider.GetRequiredService(classType);
             await target.LoadModuleState(route);
 
             var callbackTask = (Task)callbackMethodInfo.Invoke(target, [parameter, route])!;
@@ -77,11 +82,9 @@ namespace CannoliKit.Processors.Core
             }
             catch (Exception ex)
             {
-                //await EmitLog(new LogMessage(
-                //    LogSeverity.Error,
-                //    GetType().Name,
-                //    ex.Message,
-                //    ex));
+                _logger.LogCritical(
+                    ex,
+                    ex.Message);
             }
             finally
             {

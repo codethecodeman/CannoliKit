@@ -26,7 +26,6 @@ namespace Demo
                 c.SetMinimumLevel(LogLevel.Information);
                 c.AddSimpleConsole(options =>
                 {
-                    options.SingleLine = true;
                     options.TimestampFormat = "yyyy-MM-dd HH:mm:ss ";
                 });
             });

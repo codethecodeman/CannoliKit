@@ -36,14 +36,14 @@ namespace CannoliKit.Processors.Core
             if (attributes == null)
             {
                 throw new InvalidOperationException(
-                    $"Unable to find registered Cannoli command with name \"{commandName}\"");
+                    $"Unable to find registered Cannoli command with name {commandName}");
             }
 
             _logger.LogInformation(
-                "Received command \"{commandName}\" from user {userId} ({username})",
+                "Received command {commandName} from user {username} ({userId})",
                 commandName,
-                job.SocketCommand.User.Id,
-                job.SocketCommand.User.Username);
+                job.SocketCommand.User.Username,
+                job.SocketCommand.User.Id);
 
             var command = (ICannoliCommand)_serviceProvider.GetRequiredService(attributes.Type);
 

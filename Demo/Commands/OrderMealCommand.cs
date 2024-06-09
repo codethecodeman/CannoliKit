@@ -1,6 +1,8 @@
 ﻿using CannoliKit.Commands;
 using CannoliKit.Enums;
+using CannoliKit.Extensions;
 using CannoliKit.Interfaces;
+using Demo.Modules.Cart;
 using Discord;
 
 namespace Demo.Commands
@@ -10,9 +12,18 @@ namespace Demo.Commands
         public string Name => "order-meal";
         public DeferralType DeferralType => DeferralType.Ephemeral;
 
-        public Task RespondAsync(CannoliCommandContext context)
+        private readonly ICannoliModuleFactory _moduleFactory;
+
+        public OrderMealCommand(
+            ICannoliModuleFactory moduleFactory)
         {
-            throw new NotImplementedException();
+            _moduleFactory = moduleFactory;
+        }
+
+        public async Task RespondAsync(CannoliCommandContext context)
+        {
+            var cartModule = _moduleFactory.CreateModule<CartModule>();
+            await context.Command.FollowupAsync(cartModule);
         }
 
         public async Task<ApplicationCommandProperties> BuildAsync()

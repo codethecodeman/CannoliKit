@@ -8,7 +8,7 @@ namespace CannoliKit.Interfaces
     {
         string Name { get; }
         DeferralType DeferralType { get; }
-        Task RespondAsync(CannoliCommandContext context);
         Task<ApplicationCommandProperties> BuildAsync();
+        Task RespondAsync(CannoliCommandContext context);
     }
 }

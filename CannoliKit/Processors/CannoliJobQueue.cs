@@ -124,8 +124,8 @@ internal sealed class CannoliJobQueue<TJob> : ICannoliJobQueue<TJob>, IDisposabl
         {
             _logger.LogCritical(
                 ex,
-                "Unable to process job. {exceptionMessage}",
-                ex.Message);
+                "Failed to process {jobType}.",
+                typeof(TJob).Name);
         }
     }
 
