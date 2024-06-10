@@ -1,0 +1,49 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "CannoliKit/*.csproj",
+          ],
+          "src": "../"
+        }
+      ],
+      "dest": "api",
+      "outputFormat": "apiPage"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [ "**/*.{md,yml}" ],
+        "exclude": [ "_site/**", "obj/**" ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern"
+    ],
+    "globalMetadata": {
+      "_appName": "CannoliKit",
+      "_appTitle": "CannoliKit",
+	  "_appFaviconPath": "../images/LogoSmall.svg",
+	  "_appLogoPath": "../images/LogoBrand.svg",
+      "_enableSearch": true,
+      "pdf": false
+    },
+    "sitemap": {
+      "baseUrl": "https://codythecodeman.github.io/CannoliKit",
+      "priority": 0.1,
+      "changefreq": "monthly"
+    }
+  }
+}

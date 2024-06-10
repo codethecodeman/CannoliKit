@@ -399,3 +399,5 @@ FodyWeavers.xsd
 
 # CannoliKit
 /Demo/token.json
+/docs/_site/**
+/docs/api/**

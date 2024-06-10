@@ -13,6 +13,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CannoliKit
 {
+    /// <summary>
+    /// Client that initializes CannoliKit services and wires up events.
+    /// </summary>
+    /// <typeparam name="TContext">DbContext that implements <see cref="ICannoliDbContext"/>.</typeparam>
     public class CannoliClient<TContext> : ICannoliClient
         where TContext : DbContext, ICannoliDbContext
     {
@@ -43,6 +47,9 @@ namespace CannoliKit
 
         internal IReadOnlyDictionary<string, Type> Commands => throw new NotImplementedException();
 
+        /// <summary>
+        /// Initializes CannoliKit services and wires up events.
+        /// </summary>
         public async Task SetupAsync()
         {
             await LoadCommands();
