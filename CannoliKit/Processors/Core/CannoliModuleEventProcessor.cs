@@ -10,16 +10,16 @@ namespace CannoliKit.Processors.Core
 {
     internal sealed class CannoliModuleEventProcessor : ICannoliProcessor<CannoliModuleEventJob>
     {
-        private readonly TurnManager _turnManager;
+        private readonly CannoliModuleTurnManager _cannoliModuleTurnManager;
         private readonly ICannoliModuleFactory _moduleFactory;
         private readonly ILogger<CannoliModuleEventProcessor> _logger;
 
         public CannoliModuleEventProcessor(
-            TurnManager turnManager,
+            CannoliModuleTurnManager cannoliModuleTurnManager,
             ICannoliModuleFactory moduleFactory,
             ILogger<CannoliModuleEventProcessor> logger)
         {
-            _turnManager = turnManager;
+            _cannoliModuleTurnManager = cannoliModuleTurnManager;
             _moduleFactory = moduleFactory;
             _logger = logger;
         }
@@ -74,7 +74,7 @@ namespace CannoliKit.Processors.Core
         {
             var thisTurn = new TaskCompletionSource<bool>();
 
-            var previousTurn = _turnManager.GetTurnToAwait(job.Route.StateId, thisTurn);
+            var previousTurn = _cannoliModuleTurnManager.GetTurnToAwait(job.Route.StateId, thisTurn);
 
             if (previousTurn != null)
             {
@@ -94,7 +94,7 @@ namespace CannoliKit.Processors.Core
             finally
             {
                 thisTurn.SetResult(true);
-                _turnManager.CleanupTurns();
+                _cannoliModuleTurnManager.CleanupTurns();
             }
         }
     }

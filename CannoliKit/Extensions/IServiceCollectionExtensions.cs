@@ -46,8 +46,8 @@ namespace CannoliKit.Extensions
 
             services.AddTransient<ICannoliModuleFactory, CannoliModuleFactory<TContext>>();
 
-            services.AddSingleton<TurnManager>();
-            services.AddSingleton<CannoliRegistry>();
+            services.AddSingleton<CannoliModuleTurnManager>();
+            services.AddSingleton<CannoliCommandRegistry>();
             services.AddSingleton<ICannoliClient, CannoliClient<TContext>>();
 
             return services;

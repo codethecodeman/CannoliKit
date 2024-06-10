@@ -2,7 +2,7 @@
 
 namespace CannoliKit.Concurrency
 {
-    internal sealed class TurnManager
+    internal sealed class CannoliModuleTurnManager
     {
         private readonly ConcurrentDictionary<string, TaskCompletionSource<bool>> _turns = new();
 

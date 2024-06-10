@@ -10,19 +10,16 @@ namespace CannoliKit.Processors.Core
 {
     internal sealed class CannoliCommandProcessor : ICannoliProcessor<CannoliCommandJob>
     {
-        private readonly CannoliRegistry _registry;
-        private readonly ICannoliClient _cannoliClient;
+        private readonly CannoliCommandRegistry _commandRegistry;
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<CannoliCommandJob> _logger;
 
         public CannoliCommandProcessor(
-            CannoliRegistry registry,
-            ICannoliClient cannoliClient,
+            CannoliCommandRegistry commandRegistry,
             IServiceProvider serviceProvider,
             ILogger<CannoliCommandJob> logger)
         {
-            _registry = registry;
-            _cannoliClient = cannoliClient;
+            _commandRegistry = commandRegistry;
             _serviceProvider = serviceProvider;
             _logger = logger;
         }
@@ -31,7 +28,7 @@ namespace CannoliKit.Processors.Core
         {
             var commandName = job.SocketCommand.CommandName;
 
-            _registry.Commands.TryGetValue(commandName, out var attributes);
+            _commandRegistry.Commands.TryGetValue(commandName, out var attributes);
 
             if (attributes == null)
             {

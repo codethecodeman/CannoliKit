@@ -1,11 +1,9 @@
-﻿using CannoliKit.Commands;
-using CannoliKit.Enums;
+﻿using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
 using CannoliKit.Processors.Jobs;
 using CannoliKit.Utilities;
 using CannoliKit.Workers.Jobs;
-using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,8 +19,7 @@ namespace CannoliKit
         where TContext : DbContext, ICannoliDbContext
     {
         private readonly DiscordSocketClient _discordClient;
-        private readonly CannoliRegistry _registry;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly CannoliCommandRegistry _commandRegistry;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<ICannoliClient> _logger;
         private readonly ICannoliJobQueue<CannoliCommandJob> _commandJobQueue;
@@ -35,24 +32,21 @@ namespace CannoliKit
             IServiceScopeFactory serviceScopeFactory,
             ILogger<ICannoliClient> logger)
         {
-            _serviceProvider = serviceProvider;
+            _discordClient = discordClient;
             _serviceScopeFactory = serviceScopeFactory;
             _logger = logger;
-            _discordClient = discordClient;
-            _registry = _serviceProvider.GetRequiredService<CannoliRegistry>();
-            _commandJobQueue = _serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliCommandJob>>();
-            _moduleEventJobQueue = _serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliModuleEventJob>>();
-            _cleanupJobQueue = _serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliCleanupJob>>();
+            _commandRegistry = serviceProvider.GetRequiredService<CannoliCommandRegistry>();
+            _commandJobQueue = serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliCommandJob>>();
+            _moduleEventJobQueue = serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliModuleEventJob>>();
+            _cleanupJobQueue = serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliCleanupJob>>();
         }
-
-        internal IReadOnlyDictionary<string, Type> Commands => throw new NotImplementedException();
 
         /// <summary>
         /// Initializes CannoliKit services and wires up events.
         /// </summary>
         public async Task SetupAsync()
         {
-            await LoadCommands();
+            await _commandRegistry.LoadCommands();
             InitializeWorkers();
             SubscribeLoggedInEvent();
             SubscribeCommandEvents();
@@ -67,13 +61,13 @@ namespace CannoliKit
 
         private async Task RegisterCommands()
         {
-            if (_registry.Commands.IsEmpty) return;
+            if (_commandRegistry.Commands.IsEmpty) return;
 
             var remoteGlobalCommands = await _discordClient.GetGlobalApplicationCommandsAsync();
 
             foreach (var globalCommand in remoteGlobalCommands)
             {
-                if (_registry.Commands.Keys.Any(c => c == globalCommand.Name))
+                if (_commandRegistry.Commands.Keys.Any(c => c == globalCommand.Name))
                 {
                     continue;
                 }
@@ -85,40 +79,14 @@ namespace CannoliKit
                     globalCommand.Name);
             }
 
-            using var scope = _serviceScopeFactory.CreateScope();
-            var commands = scope.ServiceProvider.GetServices<ICannoliCommand>();
-
-            var properties = new List<ApplicationCommandProperties>();
-
-            foreach (var command in commands)
-            {
-                properties.Add(await command.BuildAsync());
-            }
-
             await _discordClient.BulkOverwriteGlobalApplicationCommandsAsync(
-                properties.ToArray());
+                _commandRegistry.Commands.Values.Select(c => c.ApplicationCommandProperties).ToArray());
 
-            foreach (var commandName in _registry.Commands.Keys)
+            foreach (var commandName in _commandRegistry.Commands.Keys)
             {
                 _logger.LogInformation(
                     "Registered global command {commandName}.",
                     commandName);
-            }
-        }
-
-        private async Task LoadCommands()
-        {
-            var commands = _serviceProvider.GetServices<ICannoliCommand>();
-
-            foreach (var command in commands)
-            {
-                _registry.Commands[command.Name] = new CannoliCommandMeta
-                {
-                    Name = command.Name,
-                    DeferralType = command.DeferralType,
-                    ApplicationCommandProperties = await command.BuildAsync(),
-                    Type = command.GetType()
-                };
             }
         }
 
@@ -142,7 +110,7 @@ namespace CannoliKit
 
         private async Task EnqueueCommandEvent(SocketCommandBase arg)
         {
-            _registry.Commands.TryGetValue(arg.CommandName, out var attributes);
+            _commandRegistry.Commands.TryGetValue(arg.CommandName, out var attributes);
 
             if (attributes == null) return;
 
