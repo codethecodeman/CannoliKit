@@ -11,7 +11,7 @@ namespace CannoliKit.Interfaces
     public interface ICannoliModuleFactory
     {
         /// <summary>
-        /// Create an instance of a Cannoli Module, a type that implements <see cref="CannoliModule{TContext,TState}"/>.
+        /// Create a new instance of a Cannoli Module, a type that implements <see cref="CannoliModule{TContext,TState}"/>.
         /// </summary>
         /// <typeparam name="T">Type that implements <see cref="CannoliModule{TContext,TState}"/>.</typeparam>
         /// <param name="requestingUser">User that initiated the interaction.</param>
@@ -23,7 +23,7 @@ namespace CannoliKit.Interfaces
             where T : CannoliModuleBase;
 
         /// <summary>
-        /// Create an instance of a Cannoli Module, a type that implements <see cref="CannoliModule{TContext,TState}"/>.
+        /// Create a new instance of a Cannoli Module, a type that implements <see cref="CannoliModule{TContext,TState}"/>.
         /// </summary>
         /// <param name="type">Type that implements <see cref="CannoliModule{TContext,TState}"/>.</param>
         /// <param name="requestingUser">User that initiated the interaction.</param>

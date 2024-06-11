@@ -128,7 +128,7 @@ internal sealed class CannoliJobQueue<TContext, TJob> : ICannoliJobQueue<TJob>, 
         {
             _logger.LogCritical(
                 ex,
-                "Failed to process {jobType}.",
+                "Failed to process {jobType}. ",
                 typeof(TJob).Name);
         }
     }
