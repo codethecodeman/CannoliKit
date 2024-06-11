@@ -19,9 +19,9 @@ namespace Demo.Modules.Cart
         public CartModule(
             DemoDbContext db,
             DiscordSocketClient discordClient,
-            CannoliModuleConfiguration configuration,
+            CannoliModuleFactoryConfiguration factoryConfiguration,
             ICannoliModuleFactory cannoliModuleFactory)
-            : base(db, discordClient, configuration)
+            : base(db, discordClient, factoryConfiguration)
         {
             _cannoliModuleFactory = cannoliModuleFactory;
 

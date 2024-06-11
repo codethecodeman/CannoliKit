@@ -5,16 +5,22 @@ using CannoliKit.Interfaces;
 using CannoliKit.Processors;
 using CannoliKit.Processors.Core;
 using CannoliKit.Processors.Jobs;
-using CannoliKit.Workers;
-using CannoliKit.Workers.Jobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
 namespace CannoliKit.Extensions
 {
+    /// <summary>
+    /// CannoliKit extension methods for <see cref="IServiceCollection"/>.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// Automatically search loaded assemblies for CannoliKit services and add them to the service collection.
+        /// </summary>
+        /// <typeparam name="TContext"><see cref="DbContext"/> that implements <see cref="ICannoliDbContext"/>.</typeparam>
+        /// <param name="services"></param>
         public static IServiceCollection AddCannoliServices<TContext>(this IServiceCollection services)
             where TContext : DbContext, ICannoliDbContext
         {

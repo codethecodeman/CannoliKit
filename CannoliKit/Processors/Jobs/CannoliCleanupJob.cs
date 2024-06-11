@@ -1,6 +1,6 @@
 ﻿namespace CannoliKit.Processors.Jobs
 {
-    public sealed class CannoliCleanupJob
+    internal sealed class CannoliCleanupJob
     {
         internal CannoliCleanupJob() { }
     }

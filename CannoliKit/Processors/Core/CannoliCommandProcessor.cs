@@ -1,6 +1,6 @@
 ﻿using CannoliKit.Commands;
 using CannoliKit.Interfaces;
-using CannoliKit.Workers.Jobs;
+using CannoliKit.Processors.Jobs;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;

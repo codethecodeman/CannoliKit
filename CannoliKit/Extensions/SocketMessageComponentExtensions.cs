@@ -1,16 +1,19 @@
-﻿using CannoliKit.Interfaces;
-using CannoliKit.Modules;
-using CannoliKit.Modules.States;
+﻿using CannoliKit.Modules;
 using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore;
 
 namespace CannoliKit.Extensions
 {
+    /// <summary>
+    /// CannoliKit extension methods for <see cref="SocketMessageComponent"/>.
+    /// </summary>
     public static class SocketMessageComponentExtensions
     {
-        public static async Task ModifyOriginalResponseAsync<TContext, TState>(this SocketMessageComponent component, CannoliModule<TContext, TState> module)
-            where TContext : DbContext, ICannoliDbContext
-            where TState : CannoliModuleState, new()
+        /// <summary>
+        /// Modify the interaction's original response with a <see cref="CannoliModule{TContext,TState}"/>.
+        /// </summary>
+        /// <param name="component">Discord interaction.</param>
+        /// <param name="module">Module to be used in the modification.</param>
+        public static async Task ModifyOriginalResponseAsync(this SocketMessageComponent component, CannoliModuleBase module)
         {
             var moduleComponents = await module.BuildComponents();
             await component.ModifyOriginalResponseAsync(moduleComponents.ApplyToMessageProperties);

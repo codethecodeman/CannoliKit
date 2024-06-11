@@ -11,8 +11,8 @@ namespace Demo.Modules.Menu
         public MenuModule(
             DemoDbContext db,
             DiscordSocketClient discordClient,
-            CannoliModuleConfiguration configuration)
-            : base(db, discordClient, configuration)
+            CannoliModuleFactoryConfiguration factoryConfiguration)
+            : base(db, discordClient, factoryConfiguration)
         {
             Pagination.IsEnabled = true;
             Pagination.NumItemsPerRow = 2;

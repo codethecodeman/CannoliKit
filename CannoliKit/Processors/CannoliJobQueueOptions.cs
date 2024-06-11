@@ -1,7 +1,7 @@
-﻿namespace CannoliKit.Workers
+﻿namespace CannoliKit.Processors
 {
-    public class CannoliJobQueueOptions
+    internal sealed class CannoliJobQueueOptions
     {
-        public int MaxConcurrentJobs { get; init; }
+        internal int MaxConcurrentJobs { get; init; }
     }
 }

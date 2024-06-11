@@ -1,7 +1,6 @@
 ﻿using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Processors.Channels;
-using CannoliKit.Workers;
 using Discord;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

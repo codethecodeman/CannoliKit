@@ -11,29 +11,70 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CannoliKit.Modules
 {
+    /// <summary>
+    /// Represents a Cannoli Module. A multi-feature UI module with a state and interactions that are persisted to a database.
+    /// Cannoli Modules are not directly registered as services. Instead, they must be created using <see cref="ICannoliModuleFactory"/>.
+    /// </summary>
+    /// <typeparam name="TContext"><see cref="DbContext"/> that implements <see cref="ICannoliDbContext"/>.</typeparam>
+    /// <typeparam name="TState">Type that implements <see cref="CannoliModuleState"/> and has a parameterless constructor.</typeparam>
     public abstract class CannoliModule<TContext, TState> : CannoliModuleBase
         where TContext : DbContext, ICannoliDbContext
         where TState : CannoliModuleState, new()
     {
+        /// <summary>
+        /// Discord client.
+        /// </summary>
         protected readonly DiscordSocketClient DiscordClient;
+
+        /// <summary>
+        /// Database. Will be automatically saved after callbacks have executed.
+        /// </summary>
         protected readonly TContext Db;
+
+        /// <summary>
+        /// Pagination settings and utility.
+        /// </summary>
         protected readonly Pagination.Pagination Pagination;
+
+        /// <summary>
+        /// Cannoli Route utility.
+        /// </summary>
         protected readonly RouteManager RouteManager;
+
+        /// <summary>
+        /// Cancellation settings.
+        /// </summary>
         protected readonly Cancellation.CancellationSettings Cancellation;
+
+        /// <summary>
+        /// User that initiated the interaction in the current context.
+        /// </summary>
         protected readonly SocketUser User;
+
+        /// <summary>
+        /// Module state. Will be automatically persisted to the database.
+        /// </summary>
         protected TState State { get; private set; }
+
+        /// <summary>
+        /// Cannoli Routes that have been passed into the module as a means to pass information to or return to a different module.
+        /// </summary>
         protected IReadOnlyDictionary<string, CannoliRouteId> ReturnRoutes => State.ReturnRoutes;
+
         private const string DefaultCancelRouteName = "CannoliKit.DefaultCancelRoute";
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="CannoliModule{TContext,TState}"/>. This constructor is intended for use with Dependency Injection.
+        /// </summary>
         protected CannoliModule(
             TContext db,
             DiscordSocketClient discordClient,
-            CannoliModuleConfiguration configuration)
+            CannoliModuleFactoryConfiguration factoryConfiguration)
         {
             Db = db;
             DiscordClient = discordClient;
             Pagination = new Pagination.Pagination();
-            User = configuration.RequestingUser;
+            User = factoryConfiguration.RequestingUser;
 
             State = new TState
             {
@@ -43,14 +84,14 @@ namespace CannoliKit.Modules
             RouteManager = new RouteManager(Db, GetType(), State);
             Cancellation = new Cancellation.CancellationSettings(State);
 
-            if (configuration.Routing?.CancellationRouteId != null)
+            if (factoryConfiguration.Routing?.CancellationRouteId != null)
             {
-                Cancellation.SetRoute(configuration.Routing.CancellationRouteId);
+                Cancellation.SetRoute(factoryConfiguration.Routing.CancellationRouteId);
             }
 
-            if (configuration.Routing?.ReturnRouteIds != null)
+            if (factoryConfiguration.Routing?.ReturnRouteIds != null)
             {
-                foreach (var r in configuration.Routing.ReturnRouteIds)
+                foreach (var r in factoryConfiguration.Routing.ReturnRouteIds)
                 {
                     r.Value.Route!.StateIdToBeDeleted = State.Id;
                     State.ReturnRoutes.Add(r.Key, r.Value);

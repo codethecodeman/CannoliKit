@@ -2,6 +2,9 @@
 
 namespace CannoliKit.Modules
 {
+    /// <summary>
+    /// Represents a base class for a Cannoli Module.
+    /// </summary>
     public abstract class CannoliModuleBase
     {
         internal CannoliModuleBase() { }

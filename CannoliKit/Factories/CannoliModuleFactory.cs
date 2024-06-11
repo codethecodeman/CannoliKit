@@ -7,17 +7,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CannoliKit.Factories
 {
+    /// <summary>
+    /// <inheritdoc cref="ICannoliModuleFactory"/>
+    /// </summary>
+    /// <typeparam name="TContext"><see cref="DbContext"/> that implements <see cref="ICannoliDbContext"/>.</typeparam>
     public sealed class CannoliModuleFactory<TContext> : ICannoliModuleFactory
         where TContext : DbContext, ICannoliDbContext
     {
         private readonly IServiceProvider _serviceProvider;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="CannoliModuleFactory{TContext}"/>. This constructor is intended for use with Dependency Injection.
+        /// </summary>
         public CannoliModuleFactory(
             IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }
 
+        /// <summary>
+        /// <inheritdoc cref="ICannoliModuleFactory"/>
+        /// </summary>
         public T CreateModule<T>(
             SocketUser requestingUser,
             RouteConfiguration? routing = null)
@@ -26,6 +36,9 @@ namespace CannoliKit.Factories
             return (T)CreateModuleFromType(typeof(T), requestingUser, routing);
         }
 
+        /// <summary>
+        /// <inheritdoc cref="ICannoliModuleFactory"/>
+        /// </summary>
         public CannoliModuleBase CreateModule(
             Type type,
             SocketUser requestingUser,
@@ -43,9 +56,9 @@ namespace CannoliKit.Factories
 
             var parameters = constructor.GetParameters();
 
-            var configuration = new CannoliModuleConfiguration(requestingUser, routing);
+            var configuration = new CannoliModuleFactoryConfiguration(requestingUser, routing);
 
-            var arguments = parameters.Select(p => p.ParameterType == typeof(CannoliModuleConfiguration)
+            var arguments = parameters.Select(p => p.ParameterType == typeof(CannoliModuleFactoryConfiguration)
                 ? configuration
                 : _serviceProvider.GetRequiredService(p.ParameterType)).ToArray();
 

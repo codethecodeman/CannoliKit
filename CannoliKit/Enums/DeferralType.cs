@@ -1,20 +1,23 @@
 ﻿namespace CannoliKit.Enums
 {
+    /// <summary>
+    /// Specifies a deferral type to be used with incoming Discord interactions.
+    /// </summary>
     public enum DeferralType
     {
         /// <summary>
-        /// Request will not be deferred.
+        /// Interaction will not be deferred.
         /// </summary>
         None,
 
         /// <summary>
-        /// Request will be immediately deferred
+        /// Interaction will be immediately deferred
         /// with the ephemeral flag enabled.
         /// </summary>
         Ephemeral,
 
         /// <summary>
-        /// Request will be immediately deferred
+        /// Interaction will be immediately deferred
         /// with the ephemeral flag disabled.
         /// </summary>
         Public

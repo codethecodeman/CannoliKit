@@ -2,6 +2,7 @@
 
 namespace CannoliKit.Modules
 {
+
     public sealed class CannoliModuleComponents
     {
         public string? Content { get; set; }

@@ -2,7 +2,7 @@
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
 using CannoliKit.Utilities;
-using CannoliKit.Workers.Jobs;
+using CannoliKit.Processors.Jobs;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 

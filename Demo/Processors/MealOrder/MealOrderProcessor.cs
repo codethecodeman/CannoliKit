@@ -10,7 +10,6 @@ namespace Demo.Processors.MealOrder
             DemoDbContext dbContext,
             ICannoliJobQueue<MealOrderJob> jobQueue)
         {
-
         }
 
         public Task HandleJobAsync(MealOrderJob job)

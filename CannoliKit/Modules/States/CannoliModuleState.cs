@@ -5,14 +5,29 @@ using System.Text.Json.Serialization;
 
 namespace CannoliKit.Modules.States
 {
+    /// <summary>
+    /// Cannoli Module state base class.
+    /// </summary>
     public class CannoliModuleState
     {
+        /// <summary>
+        /// State ID.
+        /// </summary>
         public string Id { get; init; } = Guid.NewGuid().ToString();
 
+        /// <summary>
+        /// Temporary info message. Will be reset upon module refresh.
+        /// </summary>
         public string? InfoMessage { get; set; }
 
+        /// <summary>
+        /// Temporary error message. Will be reset upon module refresh.
+        /// </summary>
         public string? ErrorMessage { get; set; }
 
+        /// <summary>
+        /// UTC datetime of state expiration.
+        /// </summary>
         public DateTime ExpiresOn { get; set; } = DateTime.UtcNow.AddHours(1);
 
         [JsonInclude]

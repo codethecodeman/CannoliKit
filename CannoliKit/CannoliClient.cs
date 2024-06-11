@@ -3,7 +3,6 @@ using CannoliKit.Interfaces;
 using CannoliKit.Models;
 using CannoliKit.Processors.Jobs;
 using CannoliKit.Utilities;
-using CannoliKit.Workers.Jobs;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,9 +11,9 @@ using Microsoft.Extensions.Logging;
 namespace CannoliKit
 {
     /// <summary>
-    /// Client that initializes CannoliKit services and wires up events.
+    /// <inheritdoc cref="ICannoliClient"/>
     /// </summary>
-    /// <typeparam name="TContext">DbContext that implements <see cref="ICannoliDbContext"/>.</typeparam>
+    /// <typeparam name="TContext"><see cref="DbContext"/> that implements <see cref="ICannoliDbContext"/>.</typeparam>
     public class CannoliClient<TContext> : ICannoliClient
         where TContext : DbContext, ICannoliDbContext
     {
@@ -26,6 +25,9 @@ namespace CannoliKit
         private readonly ICannoliJobQueue<CannoliModuleEventJob> _moduleEventJobQueue;
         private readonly ICannoliJobQueue<CannoliCleanupJob> _cleanupJobQueue;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="CannoliClient{TContext}"/>. This constructor is intended for use with Dependency Injection.
+        /// </summary>
         public CannoliClient(
             DiscordSocketClient discordClient,
             IServiceProvider serviceProvider,
@@ -42,7 +44,7 @@ namespace CannoliKit
         }
 
         /// <summary>
-        /// Initializes CannoliKit services and wires up events.
+        /// <inheritdoc cref="ICannoliClient"/>
         /// </summary>
         public async Task SetupAsync()
         {
@@ -56,38 +58,7 @@ namespace CannoliKit
 
         private void SubscribeLoggedInEvent()
         {
-            _discordClient.Ready += RegisterCommands;
-        }
-
-        private async Task RegisterCommands()
-        {
-            if (_commandRegistry.Commands.IsEmpty) return;
-
-            var remoteGlobalCommands = await _discordClient.GetGlobalApplicationCommandsAsync();
-
-            foreach (var globalCommand in remoteGlobalCommands)
-            {
-                if (_commandRegistry.Commands.Keys.Any(c => c == globalCommand.Name))
-                {
-                    continue;
-                }
-
-                await globalCommand.DeleteAsync();
-
-                _logger.LogInformation(
-                    "Deleted global command {commandName}.",
-                    globalCommand.Name);
-            }
-
-            await _discordClient.BulkOverwriteGlobalApplicationCommandsAsync(
-                _commandRegistry.Commands.Values.Select(c => c.ApplicationCommandProperties).ToArray());
-
-            foreach (var commandName in _commandRegistry.Commands.Keys)
-            {
-                _logger.LogInformation(
-                    "Registered global command {commandName}.",
-                    commandName);
-            }
+            _discordClient.Ready += _commandRegistry.RegisterCommandsWithDiscord;
         }
 
         private void SubscribeCommandEvents()
