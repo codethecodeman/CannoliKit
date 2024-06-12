@@ -15,4 +15,14 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="8.0.6" />
 	</ItemGroup>
 
+
+	<ItemGroup>
+	  <EditorConfigFiles Remove="J:\Projects\GitHub\CannoliKit\CannoliKit\.editorconfig" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+	  <None Include="J:\Projects\GitHub\CannoliKit\CannoliKit\.editorconfig" />
+	</ItemGroup>
+
 </Project>

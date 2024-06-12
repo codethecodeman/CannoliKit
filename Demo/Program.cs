@@ -13,13 +13,24 @@ namespace Demo
 {
     public class Program
     {
-        private ILogger<DiscordSocketClient> _discordSocketClientLogger = null!;
-
         public static Task Main() => new Program().MainAsync();
 
         internal async Task MainAsync()
         {
             var collection = new ServiceCollection();
+
+            collection.AddDbContext<DemoDbContext>(opt =>
+                opt.UseSqlite(ConfigurationHelper.GetDbConnectionString())
+                    .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug))));
+
+            collection.AddSingleton(new DiscordSocketConfig()
+            {
+                GatewayIntents = GatewayIntents.AllUnprivileged
+            });
+
+            collection.AddSingleton<DiscordSocketClient>();
+
+            collection.AddCannoliServices<DemoDbContext>();
 
             collection.AddLogging(c =>
             {
@@ -30,22 +41,7 @@ namespace Demo
                 });
             });
 
-            collection.AddSingleton(new DiscordSocketConfig()
-            {
-                GatewayIntents = GatewayIntents.AllUnprivileged
-            });
-
-            collection.AddSingleton(new DiscordSocketClient());
-
-            collection.AddDbContext<DemoDbContext>(opt =>
-                opt.UseSqlite(ConfigurationHelper.GetDbConnectionString())
-                    .ConfigureWarnings(c => c.Log((RelationalEventId.CommandExecuted, LogLevel.Debug))));
-
-            collection.AddCannoliServices<DemoDbContext>();
-
             var serviceProvider = collection.BuildServiceProvider();
-
-            _discordSocketClientLogger = serviceProvider.GetRequiredService<ILogger<DiscordSocketClient>>();
 
             await serviceProvider.InitDatabaseAsync();
 
@@ -55,7 +51,9 @@ namespace Demo
 
             var discordClient = serviceProvider.GetRequiredService<DiscordSocketClient>();
 
-            discordClient.Log += m => _discordSocketClientLogger.HandleLogMessage(m);
+            var discordClientLogger = serviceProvider.GetRequiredService<ILogger<DiscordSocketClient>>();
+
+            discordClient.Log += m => discordClientLogger.HandleLogMessage(m);
 
             await discordClient.LoginAsync(TokenType.Bot, ConfigurationHelper.GetDiscordToken());
             await discordClient.StartAsync();

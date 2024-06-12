@@ -34,7 +34,7 @@ namespace Demo.Modules.Cart
             Cancellation.ButtonLabel = "Cancel Order";
         }
 
-        protected override async Task<CannoliModuleParts> SetupModule()
+        protected override async Task<CannoliModuleLayout> BuildLayout()
         {
             Pagination.SetItemCount(State.Items.Count);
 
@@ -139,7 +139,7 @@ namespace Demo.Modules.Cart
 
             await Task.CompletedTask;
 
-            return new CannoliModuleParts
+            return new CannoliModuleLayout
             {
                 EmbedBuilder = embedBuilder,
                 ComponentBuilder = componentBuilder,

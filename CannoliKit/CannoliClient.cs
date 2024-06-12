@@ -6,7 +6,6 @@ using CannoliKit.Utilities;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace CannoliKit
 {
@@ -20,7 +19,6 @@ namespace CannoliKit
         private readonly DiscordSocketClient _discordClient;
         private readonly CannoliCommandRegistry _commandRegistry;
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private readonly ILogger<ICannoliClient> _logger;
         private readonly ICannoliJobQueue<CannoliCommandJob> _commandJobQueue;
         private readonly ICannoliJobQueue<CannoliModuleEventJob> _moduleEventJobQueue;
         private readonly ICannoliJobQueue<CannoliCleanupJob> _cleanupJobQueue;
@@ -31,12 +29,10 @@ namespace CannoliKit
         public CannoliClient(
             DiscordSocketClient discordClient,
             IServiceProvider serviceProvider,
-            IServiceScopeFactory serviceScopeFactory,
-            ILogger<ICannoliClient> logger)
+            IServiceScopeFactory serviceScopeFactory)
         {
             _discordClient = discordClient;
             _serviceScopeFactory = serviceScopeFactory;
-            _logger = logger;
             _commandRegistry = serviceProvider.GetRequiredService<CannoliCommandRegistry>();
             _commandJobQueue = serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliCommandJob>>();
             _moduleEventJobQueue = serviceProvider.GetRequiredService<ICannoliJobQueue<CannoliModuleEventJob>>();

@@ -1,7 +1,6 @@
 ﻿using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Processors.Channels;
-using Discord;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -13,24 +12,19 @@ namespace CannoliKit.Processors;
 internal sealed class CannoliJobQueue<TContext, TJob> : ICannoliJobQueue<TJob>, IDisposable
     where TContext : DbContext, ICannoliDbContext
 {
-    private readonly IServiceProvider _serviceProvider;
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ICannoliJobQueueChannel<TJob> _channel;
+    private readonly PriorityChannel<TJob> _channel;
     private readonly ILogger<ICannoliJobQueue<TJob>> _logger;
     private readonly ConcurrentBag<Timer> _repeatingWorkTimers;
     private readonly SemaphoreSlim _taskSemaphore;
     private readonly int _maxConcurrentJobsCount;
     private bool _isRunning, _isDisposed;
-    internal delegate Task LogEventHandler(LogMessage e);
-    internal event LogEventHandler? Log;
 
     public CannoliJobQueue(
-        IServiceProvider serviceProvider,
         IServiceScopeFactory serviceScopeFactory,
         ILogger<ICannoliJobQueue<TJob>> logger,
         CannoliJobQueueOptions? options = null)
     {
-        _serviceProvider = serviceProvider;
         _scopeFactory = serviceScopeFactory;
         _logger = logger;
         _channel = new PriorityChannel<TJob>();
@@ -41,13 +35,6 @@ internal sealed class CannoliJobQueue<TContext, TJob> : ICannoliJobQueue<TJob>, 
         _repeatingWorkTimers = [];
 
         Task.Run(InitializeTaskQueue);
-    }
-
-    private async Task EmitLog(LogMessage logMessage)
-    {
-        if (Log == null) return;
-
-        await Log.Invoke(logMessage);
     }
 
     public void Dispose()

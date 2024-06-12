@@ -3,9 +3,8 @@ using Discord.WebSocket;
 
 namespace CannoliKit.Processors.Jobs
 {
-    public sealed class CannoliModuleEventJob
+    internal sealed class CannoliModuleEventJob
     {
-        internal CannoliModuleEventJob() { }
 
         internal CannoliRoute Route { get; init; } = null!;
 

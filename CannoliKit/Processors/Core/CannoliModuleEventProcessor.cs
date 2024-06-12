@@ -1,8 +1,8 @@
 ﻿using CannoliKit.Concurrency;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
-using CannoliKit.Utilities;
 using CannoliKit.Processors.Jobs;
+using CannoliKit.Utilities;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 
@@ -89,6 +89,8 @@ namespace CannoliKit.Processors.Core
             {
                 _logger.LogCritical(
                     ex,
+                    "Failed while executing Cannoli Module Route with ID {routeId}. {message}",
+                    job.Route.Id,
                     ex.Message);
             }
             finally

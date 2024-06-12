@@ -99,9 +99,9 @@ namespace CannoliKit.Modules
             }
         }
 
-        internal override async Task<CannoliModuleComponents> BuildComponents()
+        internal override async Task<CannoliModuleFinalComponents> BuildComponents()
         {
-            var renderParts = await SetupModule();
+            var renderParts = await BuildLayout();
 
             await RouteUtility.RemoveRoutes(Db, State.Id);
 
@@ -162,13 +162,17 @@ namespace CannoliKit.Modules
 
             await SaveModuleState();
 
-            return new CannoliModuleComponents(
+            return new CannoliModuleFinalComponents(
                 content,
                 embeds?.ToArray(),
                 componentBuilder?.Build());
         }
 
-        protected abstract Task<CannoliModuleParts> SetupModule();
+        /// <summary>
+        /// Builds the Cannoli Module layout which is used to render the module in Discord.
+        /// </summary>
+        /// <returns>The layout to be used to generate the module in Discord.</returns>
+        protected abstract Task<CannoliModuleLayout> BuildLayout();
 
         internal override async Task SaveModuleState()
         {
@@ -187,13 +191,8 @@ namespace CannoliKit.Modules
 
             var state = await SaveStateUtility.GetState<TState>(
                 Db,
-                route.StateId);
-
-            if (state == null)
-            {
-                throw new ModuleStateNotFoundException(
-                    $"Unable to find module state {route.StateId}.");
-            }
+                route.StateId) ?? throw new ModuleStateNotFoundException(
+                    $"Unable to find Cannoli Module State with ID {route.StateId}.");
 
             state.Db = Db;
 
@@ -246,7 +245,7 @@ namespace CannoliKit.Modules
                 Style = ButtonStyle.Secondary,
             });
 
-            componentBuilder.ActionRows ??= new List<ActionRowBuilder>();
+            componentBuilder.ActionRows ??= [];
             componentBuilder.ActionRows.Insert(0, rowBuilder);
         }
 
@@ -254,7 +253,7 @@ namespace CannoliKit.Modules
         {
             if (Cancellation.IsEnabled == false) return;
 
-            componentBuilder.ActionRows ??= new List<ActionRowBuilder>();
+            componentBuilder.ActionRows ??= [];
 
             var lastRowBuilder = componentBuilder.ActionRows.LastOrDefault();
 

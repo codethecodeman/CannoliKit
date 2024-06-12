@@ -9,7 +9,7 @@ namespace CannoliKit.Modules
     {
         internal CannoliModuleBase() { }
 
-        internal abstract Task<CannoliModuleComponents> BuildComponents();
+        internal abstract Task<CannoliModuleFinalComponents> BuildComponents();
         internal abstract Task LoadModuleState(CannoliRoute route);
         internal abstract Task SaveModuleState();
     }

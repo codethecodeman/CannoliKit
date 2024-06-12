@@ -3,13 +3,13 @@
 namespace CannoliKit.Modules
 {
 
-    public sealed class CannoliModuleComponents
+    internal sealed class CannoliModuleFinalComponents
     {
         public string? Content { get; set; }
         public Embed[]? Embeds { get; set; }
         public MessageComponent? MessageComponent { get; set; }
 
-        internal CannoliModuleComponents(string? content, Embed[]? embeds, MessageComponent? messageComponent = null)
+        internal CannoliModuleFinalComponents(string? content, Embed[]? embeds, MessageComponent? messageComponent = null)
         {
             Content = content;
             Embeds = embeds;

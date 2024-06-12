@@ -34,7 +34,7 @@ namespace CannoliKit.Modules.States
         internal CannoliRouteId? CancelRoute { get; set; }
 
         [JsonInclude]
-        internal Dictionary<string, CannoliRouteId> ReturnRoutes = new();
+        internal Dictionary<string, CannoliRouteId> ReturnRoutes = [];
 
         internal ICannoliDbContext Db { get; set; } = null!;
         internal bool IsExpiringNow;

@@ -23,7 +23,7 @@ namespace Demo.Modules.Menu
             Cancellation.ButtonLabel = "Back To Cart";
         }
 
-        protected override async Task<CannoliModuleParts> SetupModule()
+        protected override async Task<CannoliModuleLayout> BuildLayout()
         {
             var foodItems = await Db.FoodItems
                 .OrderBy(x => x.Name)
@@ -72,7 +72,7 @@ namespace Demo.Modules.Menu
                 Timestamp = DateTimeOffset.UtcNow
             };
 
-            return new CannoliModuleParts
+            return new CannoliModuleLayout
             {
                 EmbedBuilder = embedBuilder,
                 ComponentBuilder = componentBuilder,
