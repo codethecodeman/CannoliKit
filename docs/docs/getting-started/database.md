@@ -6,11 +6,11 @@
 ## Introduction
 CannoliKit uses EF Core to support its various features. It can also be useful to your project, allowing you to store and query information from a database. 
 
-Any project that uses CannoliKit must have a custom `DbContext` that implements `ICannoliDbContext`.
+Any project that uses CannoliKit must define a derived `DbContext` that implements `ICannoliDbContext`.
 
 ## Example
 
-Suppose your bot will let Discord users play games and keep track of scores. Your custom DbContext might look like this:
+Suppose your bot will let Discord users play games and keep track of scores. Your derived `DbContext` might look like this:
 
 ```csharp
 public class GameNightDbContext : DbContext, ICannoliDbContext

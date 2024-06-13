@@ -2,6 +2,7 @@
 - href: installation.md
 - name: Getting Started
   items:
+    - href: getting-started/tldr.md
     - href: getting-started/discord-developer.md
     - href: getting-started/database.md
     - href: getting-started/dependency-injection.md

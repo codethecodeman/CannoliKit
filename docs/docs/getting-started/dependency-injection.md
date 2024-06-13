@@ -6,17 +6,6 @@
 ## Introduction
 CannoliKit is designed to use DI, which means your project must also be based around DI. 
 
-## TL;DR
-If you are _NOT_ familiar with DI, continue on to the example below for a step-by-step guide.
-
-If you are already familiar, here are the things you should know:
-- You must add `DiscordSocketClient` as a singleton service.
-- You must add a `DbContext` service, using your custom type that implements `ICannoliDbContext`. Its lifetime is expected to be `Scoped`.
-- You must add Cannoli services using the `IServiceCollection.AddCannoliServices<TContext>()` extension method, where TContext is your custom `DbContext` type.
-- You must add an `ILogger` service.
-- Prior to connecting your bot, you must get the `ICannoliClient` service and call the `SetupAsync()` method.
-
-
 ## Example
 Let's create a `Program.cs` that will set up our DI service container and initialize our services. You can find a full example in the [Demo project](https://github.com/codethecodeman/CannoliKit/tree/main/Demo).
 
@@ -46,7 +35,7 @@ public class Program
     {
         // ...
 
-        // Add EF Core using your custom DbContext.
+        // Add EF Core using your derived DbContext.
         // Here, we are using SQLite.
         // There are a lot of ways to set up the connection string. 
         // This is a simple example.
@@ -93,7 +82,7 @@ public class Program
         // ...
 
         // Add Cannoli services.
-        // You will need to indicate your custom DbContext type that implements ICannoliDbContext.
+        // You will need to indicate your derived DbContext type that implements ICannoliDbContext.
         collection.AddCannoliServices<GameNightDbContext>();
     }
 }
@@ -165,3 +154,8 @@ public class Program
 }
 ```
 
+## Next Steps
+Your bot is online and using CannoliKit features! But... you haven't added any yet. Next, check out: 
+- [Cannoli Commands](dependency-injection.md)
+- [Cannoli Processors](dependency-injection.md)
+- [Cannoli Modules](dependency-injection.md)

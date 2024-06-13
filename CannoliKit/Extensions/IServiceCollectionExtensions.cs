@@ -20,7 +20,6 @@ namespace CannoliKit.Extensions
         /// Automatically search loaded assemblies for CannoliKit services and add them to the service collection.
         /// </summary>
         /// <typeparam name="TContext"><see cref="DbContext"/> that implements <see cref="ICannoliDbContext"/>.</typeparam>
-        /// <param name="services"></param>
         public static IServiceCollection AddCannoliServices<TContext>(this IServiceCollection services)
             where TContext : DbContext, ICannoliDbContext
         {
