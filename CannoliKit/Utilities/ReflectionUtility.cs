@@ -28,7 +28,7 @@ namespace CannoliKit.Utilities
 
             _ = MethodInfoCache.TryAdd((type, methodName), methodInfo);
 
-            return methodInfo;
+            return MethodInfoCache[(type, methodName)];
         }
 
         internal static Type? GetType(string assemblyQualifiedTypeName)
@@ -36,7 +36,9 @@ namespace CannoliKit.Utilities
             var typeParts = assemblyQualifiedTypeName.Split(',');
             if (typeParts.Length < 2)
             {
-                throw new ArgumentException("Invalid assembly qualified name.", nameof(assemblyQualifiedTypeName));
+                throw new ArgumentException(
+                    "Invalid assembly qualified name.",
+                    nameof(assemblyQualifiedTypeName));
             }
 
             var typeName = typeParts[0].Trim();
@@ -55,7 +57,7 @@ namespace CannoliKit.Utilities
             type = assembly.GetType(typeName)!;
             _ = TypeCache.TryAdd(key, type);
 
-            return type;
+            return TypeCache[key];
         }
 
         private static Assembly GetAssembly(string assemblyName)
@@ -65,29 +67,13 @@ namespace CannoliKit.Utilities
                 return assembly;
             }
 
-            var loadedAssemblies =
-                AppDomain.CurrentDomain.GetAssemblies();
+            var loadedAssembly =
+                AppDomain.CurrentDomain.GetAssemblies()
+                    .First(x => assemblyName.Equals(x.GetName().Name, StringComparison.OrdinalIgnoreCase));
 
-            // Load the assembly by its name without version information.
-            foreach (var loadedAssembly in loadedAssemblies)
-            {
-                var loadedAssemblyName = loadedAssembly.GetName().Name;
-                if (assemblyName.Equals(loadedAssemblyName, StringComparison.OrdinalIgnoreCase))
-                {
-                    _ = AssemblyCache.TryAdd(assemblyName, loadedAssembly);
-                    return loadedAssembly;
-                }
-            }
+            _ = AssemblyCache.TryAdd(assemblyName, loadedAssembly);
 
-            // If the assembly is not referenced, try to load it directly (this may fail).
-            try
-            {
-                return Assembly.Load(new AssemblyName(assemblyName));
-            }
-            catch
-            {
-                return null;
-            }
+            return AssemblyCache[assemblyName];
         }
     }
 
