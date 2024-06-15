@@ -6,7 +6,7 @@ After [installing CannoliKit](../installation.md) and other related packages, yo
 - Implement dependency injection (DI). 
 - Add `DiscordSocketClient` as a singleton service.
 - Add a `DbContext` service using `FooDbContext`. Its lifetime is expected to be `Scoped`.
-- Add Cannoli services using the `IServiceCollection.AddCannoliServices<TContext>()` extension method, where TContext is `FooDbContext`.
+- Add Cannoli services using the `IServiceCollection.AddCannoliServices<T>()` extension method, where `T` is `FooDbContext`.
 - Add an `ILogger` service.
 - Prior to connecting your bot, get the `ICannoliClient` service and call the `SetupAsync()` method.
 

@@ -30,7 +30,6 @@ namespace Demo.Commands
         {
             var builder = new SlashCommandBuilder()
             {
-                Name = Name,
                 Description = "Start a new grocery order",
                 ContextTypes = [
                     InteractionContextType.Guild,

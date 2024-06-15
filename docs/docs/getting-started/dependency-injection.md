@@ -140,11 +140,11 @@ public class Program
         var discordClientLogger = serviceProvider.GetRequiredService<ILogger<DiscordSocketClient>>();
 
         // You might want to direct Discord socket client logging to your logger.
-        // Here, I am using an extension method from the Demo project.
+        // Here, we are using an extension method from the Demo project.
         discordClient.Log += m => discordClientLogger.HandleLogMessage(m);
 
         // Time to connect your bot! You will need to pass your token into the client.
-        // Here, I am using a helper from the Demo project to get the token.
+        // Here, we are using a helper from the Demo project to get the token.
         await discordClient.LoginAsync(TokenType.Bot, ConfigurationHelper.GetDiscordToken());
         await discordClient.StartAsync();
 
@@ -155,7 +155,7 @@ public class Program
 ```
 
 ## Next Steps
-Your bot is online and using CannoliKit features! But... you haven't added any yet. Next, check out: 
+Your bot is online and using CannoliKit! Now, it is time to implement features:
 - [Cannoli Commands](dependency-injection.md)
 - [Cannoli Processors](dependency-injection.md)
 - [Cannoli Modules](dependency-injection.md)

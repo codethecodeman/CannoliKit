@@ -27,4 +27,4 @@ CannoliKit requires you add an `ILogger` service to your DI service container. I
 
 ## Next Steps
 
-Once you have added packages to your project, you are ready to [Get Started](getting-started/discord-developer.md). Or, if you are an experienced developer and want a quick summary, jump to [TL;DR](getting-started/tldr.md).
+Once you have added packages to your project, you are ready to [Get Started](getting-started/database.md). Or, if you are an experienced developer and want a quick summary, jump to [TL;DR](getting-started/tldr.md).

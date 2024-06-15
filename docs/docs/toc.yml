@@ -3,6 +3,14 @@
 - name: Getting Started
   items:
     - href: getting-started/tldr.md
-    - href: getting-started/discord-developer.md
     - href: getting-started/database.md
     - href: getting-started/dependency-injection.md
+- name: Commands
+  items: 
+    - href: commands/overview.md
+- name: Processors
+  items:
+    - href: processors/overview.md
+- name: Modules
+  items:
+    - href: modules/introduction.md

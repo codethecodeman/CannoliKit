@@ -34,13 +34,17 @@ namespace CannoliKit
 
             foreach (var command in commands)
             {
-                Commands[command.Name] = new CannoliCommandMeta
+                var meta = new CannoliCommandMeta
                 {
                     Name = command.Name,
                     DeferralType = command.DeferralType,
                     ApplicationCommandProperties = await command.BuildAsync(),
                     Type = command.GetType()
                 };
+
+                meta.ApplicationCommandProperties.Name = command.Name;
+
+                Commands[command.Name] = meta;
             }
 
             _isLoaded = true;
