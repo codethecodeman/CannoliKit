@@ -7,6 +7,7 @@ using CannoliKit.Processors.Core;
 using CannoliKit.Processors.Jobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System.Reflection;
 
 namespace CannoliKit.Extensions
@@ -81,15 +82,24 @@ namespace CannoliKit.Extensions
                 var jobType = processorInterfaceType.GetGenericArguments()[0];
                 var jobQueueInterfaceType = typeof(ICannoliJobQueue<>).MakeGenericType(jobType);
                 var jobQueueType = typeof(CannoliJobQueue<,>).MakeGenericType(dbContextType, jobType);
+                var jobQueueLoggerType = typeof(ILogger<>).MakeGenericType(jobQueueInterfaceType);
 
                 services.AddSingleton(jobQueueInterfaceType, sp =>
                 {
                     var scopeFactory = sp.GetRequiredService<IServiceScopeFactory>();
+                    var logger = sp.GetRequiredService(jobQueueLoggerType);
                     var options = new CannoliJobQueueOptions
                     {
                         MaxConcurrentJobs = attribute?.MaxConcurrentJobs ?? int.MaxValue
                     };
-                    return Activator.CreateInstance(jobQueueType, sp, scopeFactory, options)!;
+
+                    // Get the constructor info
+                    var constructor = jobQueueType.GetConstructor([typeof(IServiceScopeFactory), jobQueueLoggerType, typeof(CannoliJobQueueOptions)]);
+
+                    // Invoke the constructor with the correct parameters
+                    return constructor!.Invoke([scopeFactory, logger, options]);
+
+                    // return Activator.CreateInstance(jobQueueType, sp, scopeFactory, logger, options)!;
                 });
 
                 services.AddTransient(processorInterfaceType, processor);

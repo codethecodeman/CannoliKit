@@ -14,11 +14,6 @@ namespace Demo.Modules.Menu
             CannoliModuleFactoryConfiguration factoryConfiguration)
             : base(db, discordClient, factoryConfiguration)
         {
-            Pagination.IsEnabled = true;
-            Pagination.NumItemsPerRow = 2;
-            Pagination.NumItemsPerField = 10;
-            Pagination.NumItemsPerPage = 10;
-
             Cancellation.IsEnabled = true;
             Cancellation.ButtonLabel = "Back To Cart";
         }
@@ -29,26 +24,18 @@ namespace Demo.Modules.Menu
                 .OrderBy(x => x.Name)
                 .ToListAsync();
 
-            Pagination.SetItemCount(foodItems.Count);
-
-            var pagedFoodItems = Pagination.GetListItems(
+            var paginationResult = Pagination.Setup(
                 items: foodItems,
+                formatter: x => $"`{x.Marker}` {x.Item.Emoji} `{x.Item.Name.PadRight(x.MaxLengthOf(y => y.Name))}`",
                 listType: ListType.Number,
                 resetListCounterBetweenPages: true);
-
-            var length = pagedFoodItems.Max(x => x.Item.Name.Length) + 1;
-
-            var fields = Pagination.GetEmbedFieldBuilders(
-                pagedFoodItems
-                    .Select(x => $"`{x.Marker}` {x.Item.Emoji} `{x.Item.Name.PadRight(length)}` ")
-                    .ToList());
 
             var menuBuilder = new SelectMenuBuilder
             {
                 CustomId = ReturnRoutes["ItemSelected"]
             };
 
-            foreach (var item in pagedFoodItems)
+            foreach (var item in paginationResult.Items)
             {
                 menuBuilder.AddOption(new SelectMenuOptionBuilder
                 {
@@ -64,6 +51,9 @@ namespace Demo.Modules.Menu
             componentBuilder.AddRow(row1);
 
             State.InfoMessage = "Select an item from the menu to add it to your cart.";
+
+            var fields = new List<EmbedFieldBuilder>();
+            fields.AddRange(paginationResult.Fields);
 
             var embedBuilder = new EmbedBuilder
             {

@@ -6,6 +6,7 @@ using CannoliKit.Modules.Pagination;
 using CannoliKit.Modules.Routing;
 using Demo.Models;
 using Demo.Modules.Menu;
+using Demo.Processors.GroceryOrder;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
@@ -15,29 +16,27 @@ namespace Demo.Modules.Cart
     internal class CartModule : CannoliModule<DemoDbContext, CartState>
     {
         private readonly ICannoliModuleFactory _cannoliModuleFactory;
+        private readonly ICannoliJobQueue<GroceryOrderJob> _groceryOrderJobQueue;
 
         public CartModule(
             DemoDbContext db,
             DiscordSocketClient discordClient,
             CannoliModuleFactoryConfiguration factoryConfiguration,
-            ICannoliModuleFactory cannoliModuleFactory)
+            ICannoliModuleFactory cannoliModuleFactory,
+            ICannoliJobQueue<GroceryOrderJob> groceryOrderJobQueue)
             : base(db, discordClient, factoryConfiguration)
         {
             _cannoliModuleFactory = cannoliModuleFactory;
-
-            Pagination.IsEnabled = true;
-            Pagination.NumItemsPerRow = 1;
-            Pagination.NumItemsPerField = 10;
-            Pagination.NumItemsPerPage = 10;
+            _groceryOrderJobQueue = groceryOrderJobQueue;
 
             Cancellation.IsEnabled = true;
             Cancellation.ButtonLabel = "Cancel Order";
+
+
         }
 
         protected override async Task<CannoliModuleLayout> BuildLayout()
         {
-            Pagination.SetItemCount(State.Items.Count);
-
             var foodItems = await Db.FoodItems.ToListAsync();
 
             var foodItemsInCart = new List<FoodItem>();
@@ -62,17 +61,18 @@ namespace Demo.Modules.Cart
                 .Select(g => new
                 {
                     Id = g.Key,
-                    Item = g.Select(x => x).First(),
+                    FoodItem = g.Select(x => x).First(),
                     Count = g.Count()
                 })
                 .ToList();
 
-            var pagedItems = Pagination.GetListItems(groupedItems, ListType.Bullet);
+            var paginationResult = Pagination.Setup(
+                items: groupedItems,
+                formatter: x => $"{x.Marker} {x.Item.FoodItem.Emoji} `{x.Item.FoodItem.Name.PadRight(x.MaxLengthOf(y => y.FoodItem.Name))}` `x{x.Item.Count}`",
+                listType: ListType.Bullet);
 
-            var fields = Pagination.GetEmbedFieldBuilders(
-                pagedItems
-                    .Select(x => $"{x.Marker} {x.Item.Item.Emoji} {x.Item.Item.Name} (x{x.Item.Count})")
-                    .ToList());
+            var fields = new List<EmbedFieldBuilder>();
+            fields.AddRange(paginationResult.Fields);
 
             if (fields.Count == 0)
             {
@@ -154,12 +154,28 @@ namespace Demo.Modules.Cart
 
         private async Task OnCheckout(SocketMessageComponent messageComponent, CannoliRoute route)
         {
+            var groceryOrder = new GroceryOrder
+            {
+                Items = State.Items.Select(x => new GroceryOrderItem { FoodItemId = x }).ToList(),
+                OrderedOn = DateTime.UtcNow,
+                UserId = User.Id.ToString()
+            };
+
+            Db.GroceryOrders.Add(groceryOrder);
+
+            await Db.SaveChangesAsync();
+
+            _groceryOrderJobQueue.EnqueueJob(new GroceryOrderJob
+            {
+                OrderId = groceryOrder.Id
+            });
+
             await messageComponent.ModifyOriginalResponseAsync(x =>
             {
                 x.Embeds = null;
                 x.Components = null;
                 x.Content =
-                    $"Ok, your order is placed and will be fulfulled shortly! For reference your Cart ID is `{State.CartId}`.";
+                    $"Ok, your order is placed and will be fulfulled shortly! For reference your Order ID is `{groceryOrder.Id}`.";
             });
 
             await State.ExpireNow();
