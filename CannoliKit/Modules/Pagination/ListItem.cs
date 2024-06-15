@@ -17,7 +17,7 @@
         /// </summary>
         public T Item { get; }
 
-        internal List<ListItem<T>> Items { get; set; }
+        internal List<ListItem<T>> Items { get; set; } = null!;
 
         /// <summary>
         /// Finds the max string length by evaluating all list items in the page.
