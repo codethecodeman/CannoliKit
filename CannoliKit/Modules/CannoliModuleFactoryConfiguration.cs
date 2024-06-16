@@ -11,10 +11,12 @@ namespace CannoliKit.Modules
     {
         internal CannoliModuleFactoryConfiguration(
             SocketUser requestingUser,
-            RouteConfiguration? routing = null)
+            RouteConfiguration? routing = null,
+            SocketInteraction? interaction = null)
         {
             RequestingUser = requestingUser;
             Routing = routing;
+            Interaction = interaction;
         }
 
         /// <summary>
@@ -26,5 +28,7 @@ namespace CannoliKit.Modules
         /// Custom Cannoli Route configuration.
         /// </summary>
         public RouteConfiguration? Routing { get; init; }
+
+        internal SocketInteraction? Interaction { get; init; }
     }
 }

@@ -2,7 +2,6 @@
 using CannoliKit.Modules;
 using CannoliKit.Modules.Routing;
 using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace CannoliKit.Factories
@@ -10,14 +9,12 @@ namespace CannoliKit.Factories
     /// <summary>
     /// <inheritdoc cref="ICannoliModuleFactory"/>
     /// </summary>
-    /// <typeparam name="TContext"><see cref="DbContext"/> that implements <see cref="ICannoliDbContext"/>.</typeparam>
-    public sealed class CannoliModuleFactory<TContext> : ICannoliModuleFactory
-        where TContext : DbContext, ICannoliDbContext
+    public sealed class CannoliModuleFactory : ICannoliModuleFactory
     {
         private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="CannoliModuleFactory{TContext}"/>. This constructor is intended for use with Dependency Injection.
+        /// Initializes a new instance of <see cref="CannoliModuleFactory"/>. This constructor is intended for use with Dependency Injection.
         /// </summary>
         public CannoliModuleFactory(
             IServiceProvider serviceProvider)
@@ -47,16 +44,28 @@ namespace CannoliKit.Factories
             return CreateModuleFromType(type, requestingUser, routing);
         }
 
+        internal CannoliModuleBase CreateModule(
+            Type type,
+            SocketUser requestingUser,
+            SocketInteraction interaction,
+            RouteConfiguration? routing = null
+           )
+        {
+            return CreateModuleFromType(type, requestingUser, routing, interaction);
+        }
+
         private CannoliModuleBase CreateModuleFromType(
             Type type,
             SocketUser requestingUser,
-            RouteConfiguration? routing = null)
+            RouteConfiguration? routing = null,
+            SocketInteraction? interaction = null
+            )
         {
             var constructor = type.GetConstructors().First();
 
             var parameters = constructor.GetParameters();
 
-            var configuration = new CannoliModuleFactoryConfiguration(requestingUser, routing);
+            var configuration = new CannoliModuleFactoryConfiguration(requestingUser, routing, interaction);
 
             var arguments = parameters.Select(p => p.ParameterType == typeof(CannoliModuleFactoryConfiguration)
                 ? configuration

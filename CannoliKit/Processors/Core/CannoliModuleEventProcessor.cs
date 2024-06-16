@@ -1,4 +1,5 @@
 ﻿using CannoliKit.Concurrency;
+using CannoliKit.Factories;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
 using CannoliKit.Processors.Jobs;
@@ -26,7 +27,7 @@ namespace CannoliKit.Processors.Core
 
         public async Task HandleJobAsync(CannoliModuleEventJob job)
         {
-            object interaction = null!;
+            SocketInteraction interaction = null!;
             SocketUser requestingUser = null!;
 
             if (job.SocketMessageComponent != null)
@@ -52,15 +53,16 @@ namespace CannoliKit.Processors.Core
             await Task.CompletedTask;
         }
 
-        private async Task RouteToModuleCallback(CannoliRoute route, object interaction, SocketUser user)
+        private async Task RouteToModuleCallback(CannoliRoute route, SocketInteraction interaction, SocketUser user)
         {
             var classType = ReflectionUtility.GetType(route.CallbackType)!;
 
             var callbackMethodInfo = ReflectionUtility.GetMethodInfo(classType, route.CallbackMethod)!;
 
-            var target = _moduleFactory.CreateModule(
-                classType,
-                user);
+            var target = ((CannoliModuleFactory)_moduleFactory).CreateModule(
+                type: classType,
+                requestingUser: user,
+                interaction: interaction);
 
             await target.LoadModuleState(route);
 
@@ -70,7 +72,7 @@ namespace CannoliKit.Processors.Core
             await target.SaveModuleState();
         }
 
-        private async Task ProcessJobInOrder(CannoliModuleEventJob job, object interaction, SocketUser user)
+        private async Task ProcessJobInOrder(CannoliModuleEventJob job, SocketInteraction interaction, SocketUser user)
         {
             var thisTurn = new TaskCompletionSource<bool>();
 

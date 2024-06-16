@@ -4,19 +4,19 @@ using Discord.WebSocket;
 namespace CannoliKit.Extensions
 {
     /// <summary>
-    /// CannoliKit extension methods for <see cref="SocketCommandBase"/>.
+    /// CannoliKit extensions for SocketInteraction.
     /// </summary>
-    public static class SocketCommandBaseExtensions
+    public static class SocketInteractionExtensions
     {
         /// <summary>
         /// Respond to the interaction with a <see cref="CannoliModule{TContext,TState}"/>.
         /// </summary>
-        /// <param name="command">Discord interaction.</param>
+        /// <param name="interaction">Discord interaction.</param>
         /// <param name="module">Module to be used in the response.</param>
-        public static async Task RespondAsync(this SocketCommandBase command, CannoliModuleBase module)
+        public static async Task RespondAsync(this SocketInteraction interaction, CannoliModuleBase module)
         {
             var moduleComponents = await module.BuildComponents();
-            await command.RespondAsync(
+            await interaction.RespondAsync(
                 text: moduleComponents.Content,
                 embeds: moduleComponents.Embeds,
                 components: moduleComponents.MessageComponent);
@@ -25,12 +25,12 @@ namespace CannoliKit.Extensions
         /// <summary>
         /// Followup to the interaction with a <see cref="CannoliModule{TContext,TState}"/>.
         /// </summary>
-        /// <param name="command">Discord interaction.</param>
+        /// <param name="interaction">Discord interaction.</param>
         /// <param name="module">Module to be used in the followup.</param>
-        public static async Task FollowupAsync(this SocketCommandBase command, CannoliModuleBase module)
+        public static async Task FollowupAsync(this SocketInteraction interaction, CannoliModuleBase module)
         {
             var moduleComponents = await module.BuildComponents();
-            await command.FollowupAsync(
+            await interaction.FollowupAsync(
                 text: moduleComponents.Content,
                 embeds: moduleComponents.Embeds,
                 components: moduleComponents.MessageComponent);
@@ -39,12 +39,12 @@ namespace CannoliKit.Extensions
         /// <summary>
         /// Modify the interaction's original response with a <see cref="CannoliModule{TContext,TState}"/>.
         /// </summary>
-        /// <param name="command">Discord interaction.</param>
+        /// <param name="interaction">Discord interaction.</param>
         /// <param name="module">Module to be used in the modification.</param>
-        public static async Task ModifyOriginalResponseAsync(this SocketCommandBase command, CannoliModuleBase module)
+        public static async Task ModifyOriginalResponseAsync(this SocketInteraction interaction, CannoliModuleBase module)
         {
             var moduleComponents = await module.BuildComponents();
-            await command.ModifyOriginalResponseAsync(moduleComponents.ApplyToMessageProperties);
+            await interaction.ModifyOriginalResponseAsync(moduleComponents.ApplyToMessageProperties);
         }
     }
 }

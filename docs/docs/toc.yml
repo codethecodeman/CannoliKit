@@ -14,3 +14,4 @@
 - name: Modules
   items:
     - href: modules/introduction.md
+    - href: modules/routing.md

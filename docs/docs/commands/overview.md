@@ -6,7 +6,7 @@
 
  ## Using Cannoli Commands
 
-To make a command, your class needs to implement `ICannoliCommand`. This will require you to specify a `Name` for the command, and a `DeferralType` which allows you to optionally auto-defer. It will also require you to implement two methods, `BuildAsync()` to set up your command properties, and `RespondAsync(CannoliCommandContext context)` to handle interactions. The command will be automatically discovered at startup and registered with Discord.
+To create a command, your class needs to implement `ICannoliCommand`. This will require you to specify a `Name` for the command, and a `DeferralType` which allows you to optionally auto-defer. It will also require you to implement two methods, `BuildAsync()` to set up your command properties, and `RespondAsync(CannoliCommandContext context)` to handle interactions. The command will be automatically discovered at startup and registered with Discord.
 
 ## Lifetime
 

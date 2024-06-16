@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CannoliKit.Modules
 {
     /// <summary>
-    /// Represents a Cannoli Module. A multi-feature UI module with a state and interactions that are persisted to a database.
+    /// Represents a Cannoli Module. Multi-featured UI modules with a state and interactions that are persisted to a database.
     /// Cannoli Modules are not directly registered as services. Instead, they must be created using <see cref="ICannoliModuleFactory"/>.
     /// </summary>
     /// <typeparam name="TContext"><see cref="DbContext"/> that implements <see cref="ICannoliDbContext"/>.</typeparam>
@@ -57,9 +57,11 @@ namespace CannoliKit.Modules
         protected TState State { get; private set; }
 
         /// <summary>
-        /// Cannoli Routes that have been passed into the module as a means to pass information to or return to a different module.
+        /// Cannoli Routes that have been passed in from a referring module as a means to pass information to or return to a different module.
         /// </summary>
         protected IReadOnlyDictionary<string, CannoliRouteId> ReturnRoutes => State.ReturnRoutes;
+
+        private readonly SocketInteraction? _interaction;
 
         private const string DefaultCancelRouteName = "CannoliKit.DefaultCancelRoute";
 
@@ -83,6 +85,8 @@ namespace CannoliKit.Modules
 
             RouteManager = new RouteManager(Db, GetType(), State);
             Cancellation = new Cancellation.CancellationSettings(State);
+
+            _interaction = factoryConfiguration.Interaction;
 
             if (factoryConfiguration.Routing?.CancellationRouteId != null)
             {
@@ -173,6 +177,25 @@ namespace CannoliKit.Modules
         /// </summary>
         /// <returns>The layout to be used to generate the module in Discord.</returns>
         protected abstract Task<CannoliModuleLayout> BuildLayout();
+
+        /// <summary>
+        /// Modifies the Discord response with a refreshed module.
+        /// </summary>
+        /// <returns></returns>
+        protected async Task RefreshModule()
+        {
+            if (_interaction == null)
+            {
+                throw new InvalidOperationException(
+                    "Module does not have an interaction context to reply to.");
+            }
+            if (_interaction.HasResponded == false)
+            {
+                await _interaction.DeferAsync();
+            }
+
+            await _interaction.ModifyOriginalResponseAsync(this);
+        }
 
         internal override async Task SaveModuleState()
         {

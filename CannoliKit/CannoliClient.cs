@@ -22,6 +22,7 @@ namespace CannoliKit
         private readonly ICannoliJobQueue<CannoliCommandJob> _commandJobQueue;
         private readonly ICannoliJobQueue<CannoliModuleEventJob> _moduleEventJobQueue;
         private readonly ICannoliJobQueue<CannoliCleanupJob> _cleanupJobQueue;
+        private const string RouteExpiredMessage = "Sorry, this interaction has expired. Please try again.";
 
         /// <summary>
         /// Initializes a new instance of <see cref="CannoliClient{TContext}"/>. This constructor is intended for use with Dependency Injection.
@@ -130,9 +131,23 @@ namespace CannoliKit
 
         private async Task EnqueueModuleEvent(SocketMessageComponent arg)
         {
+            var isValidRoute = RouteUtility.IsValidRouteId(arg.Data.CustomId);
             var route = await GetRoute(arg.Data.CustomId);
 
-            if (route == null) return;
+            if (isValidRoute == false) return;
+
+            if (route == null)
+            {
+                await arg.DeferAsync();
+                await arg.ModifyOriginalResponseAsync(x =>
+                {
+                    x.Content = RouteExpiredMessage;
+                    x.Components = null;
+                    x.Embeds = null;
+                });
+
+                return;
+            }
 
             if (route.IsDeferred)
             {
@@ -148,11 +163,24 @@ namespace CannoliKit
 
         private async Task EnqueueModuleEvent(SocketModal arg)
         {
+            await arg.DeferAsync();
+
+            var isValidRoute = RouteUtility.IsValidRouteId(arg.Data.CustomId);
             var route = await GetRoute(arg.Data.CustomId);
 
-            if (route == null) return;
+            if (isValidRoute == false) return;
 
-            await arg.DeferAsync();
+            if (route == null)
+            {
+                await arg.ModifyOriginalResponseAsync(x =>
+                {
+                    x.Content = RouteExpiredMessage;
+                    x.Components = null;
+                    x.Embeds = null;
+                });
+
+                return;
+            }
 
             await EnqueueModuleEvent(new CannoliModuleEventJob
             {

@@ -57,6 +57,7 @@ namespace CannoliKit.Modules.Pagination
                 resetListCounterBetweenPages,
                 PageNumber);
 
+            PageNumber = result.PageNumber;
             NumPages = result.NumPages;
 
             return result;

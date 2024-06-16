@@ -4,7 +4,7 @@
  ## Using Cannoli Processors
 
 ### Setting up a processor
-To create a processor, create a class that implements `ICannoliProcessor<T>`, where T is the job type. This will require you to implement the method `HandleJobAsync(T job)`. The processor will be automatically discovered at startup and registered with DI.
+To create a processor, create a class that implements `ICannoliProcessor<T>`, where `T` is the job type. This will require you to implement the method `HandleJobAsync(T job)`. The processor will be automatically discovered at startup and registered with DI.
 
 ### Enqueueing new jobs
 To enqueue a new job, inject an instance of `ICannoliJobQueue<T>` into any DI compatible class. From there, you can use `EnqueueJob(T job, Priority priority)`. Jobs enqueued with `Priority.High` will be dequeued sooner than `Priority.Normal`. 

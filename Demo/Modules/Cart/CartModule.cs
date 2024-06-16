@@ -208,12 +208,12 @@ namespace Demo.Modules.Cart
 
             State.Items.Add(foodItem.Id);
 
-            await messageComponent.ModifyOriginalResponseAsync(this);
+            await RefreshModule();
         }
 
         private async Task OnRefreshCart(SocketMessageComponent messagecomponent, CannoliRoute route)
         {
-            await messagecomponent.ModifyOriginalResponseAsync(this);
+            await RefreshModule();
         }
     }
 }
