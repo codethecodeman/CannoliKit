@@ -4,7 +4,9 @@ CannoliKit is a library designed to jump-start your Discord.Net bots with advanc
 
 Affectionately named after my orange cat, Cannoli.
 
+Created to keep myself from rewriting the same code, time and time again.
+
 ## Documentation
-- https://gitub.com
+- (Coming soon)
 ## Installation (NuGet)
-- [CannoliKit](https://www.nuget.org/packages/CannoliKit/)
+- (Coming soon)
