@@ -2,14 +2,14 @@
 using CannoliKit.Enums;
 using CannoliKit.Extensions;
 using CannoliKit.Interfaces;
-using Demo.Modules.HelloWorld;
+using Demo.Modules.Cart;
 using Discord;
 
 namespace Demo.Commands
 {
     internal class OrderCommand : ICannoliCommand
     {
-        public string Name => "order";
+        public string Name => "start-order";
         public DeferralType DeferralType => DeferralType.Ephemeral;
 
         private readonly ICannoliModuleFactory _moduleFactory;
@@ -22,7 +22,7 @@ namespace Demo.Commands
 
         public async Task RespondAsync(CannoliCommandContext context)
         {
-            var cartModule = _moduleFactory.CreateModule<HelloWorldModule>(context.Command.User);
+            var cartModule = _moduleFactory.CreateModule<CartModule>(context.Command.User);
             await context.Command.FollowupAsync(cartModule);
         }
 

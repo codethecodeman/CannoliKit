@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Demo.Processors.GroceryOrder
 {
-    [CannoliProcessor(maxConcurrentJobs: 4)]
+    [CannoliProcessor(maxConcurrentJobs: 1)]
     internal class GroceryOrderProcessor : ICannoliProcessor<GroceryOrderJob>
     {
         private readonly ILogger<GroceryOrderProcessor> _logger;
@@ -19,7 +19,12 @@ namespace Demo.Processors.GroceryOrder
         public async Task HandleJobAsync(GroceryOrderJob job)
         {
             _logger.LogInformation(
-                "Got grocery order {id}", job.OrderId);
+                "Received grocery order {id}", job.OrderId);
+
+            await Task.Delay(TimeSpan.FromSeconds(30));
+
+            _logger.LogInformation(
+                "Finished grocery order {id}", job.OrderId);
         }
     }
 }

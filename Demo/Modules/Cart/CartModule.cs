@@ -176,7 +176,7 @@ namespace Demo.Modules.Cart
                 x.Embeds = null;
                 x.Components = null;
                 x.Content =
-                    $"Ok, your order is placed and will be fulfulled shortly! For reference your Order ID is `{groceryOrder.Id}`.";
+                    $"Ok, your order is placed and will be fulfilled shortly! For reference your Order ID is `{groceryOrder.Id}`.";
             });
 
             await State.ExpireNow();
