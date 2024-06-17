@@ -32,7 +32,7 @@ namespace Demo.Modules.Cart
             Cancellation.IsEnabled = true;
             Cancellation.ButtonLabel = "Cancel Order";
 
-
+            State.ExpiresOn = DateTime.UtcNow.AddDays(3);
         }
 
         protected override async Task<CannoliModuleLayout> BuildLayout()
@@ -76,7 +76,8 @@ namespace Demo.Modules.Cart
 
             if (fields.Count == 0)
             {
-                State.InfoMessage = "Use the buttons below to add items to your cart.";
+                Alerts.SetInfoMessage(
+                    "Use the buttons below to add items to your cart.");
 
                 fields.Add(new EmbedFieldBuilder
                 {
@@ -91,7 +92,7 @@ namespace Demo.Modules.Cart
                 {
                     Label = "Open Menu",
                     Style = ButtonStyle.Primary,
-                    CustomId = await RouteManager.CreateMessageComponentRoute(
+                    CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                         callback: OnOpenMenu)
                 }
             };
@@ -102,7 +103,7 @@ namespace Demo.Modules.Cart
                 {
                     Label = "Checkout",
                     Style = ButtonStyle.Success,
-                    CustomId = await RouteManager.CreateMessageComponentRoute(
+                    CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                         callback: OnCheckout)
                 });
 
@@ -110,7 +111,7 @@ namespace Demo.Modules.Cart
                 {
                     Label = "Reset Cart",
                     Style = ButtonStyle.Danger,
-                    CustomId = await RouteManager.CreateMessageComponentRoute(
+                    CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                         callback: OnResetCart)
                 });
             }
@@ -189,11 +190,11 @@ namespace Demo.Modules.Cart
                 requestingUser: User,
                 routing: builder
                     .WithCancellationRoute(
-                        routeId: await RouteManager.CreateMessageComponentRoute(
+                        routeId: await RouteManager.CreateMessageComponentRouteAsync(
                             callback: OnRefreshCart))
                     .WithReturnRoute(
                         tag: "ItemSelected",
-                        routeId: await RouteManager.CreateMessageComponentRoute(
+                        routeId: await RouteManager.CreateMessageComponentRouteAsync(
                             callback: OnItemSelected))
                     .Build());
 
@@ -208,12 +209,12 @@ namespace Demo.Modules.Cart
 
             State.Items.Add(foodItem.Id);
 
-            await RefreshModule();
+            await RefreshModuleAsync();
         }
 
         private async Task OnRefreshCart(SocketMessageComponent messagecomponent, CannoliRoute route)
         {
-            await RefreshModule();
+            await RefreshModuleAsync();
         }
     }
 }

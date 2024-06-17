@@ -26,9 +26,11 @@ namespace Demo.Modules.Menu
 
             var paginationResult = Pagination.Setup(
                 items: foodItems,
-                formatter: x => $"`{x.Marker}` {x.Item.Emoji} `{x.Item.Name.PadRight(x.MaxLengthOf(y => y.Name))}`",
+                formatter: x => $"`{x.Marker}` {x.Item.Emoji} `{x.Item.Name.PadRight(x.MaxLengthOf(y => y.Name))}` ",
                 listType: ListType.Number,
-                resetListCounterBetweenPages: true);
+                numItemsPerRow: 2,
+                numItemsPerPage: 10,
+                numItemsPerField: 10);
 
             var menuBuilder = new SelectMenuBuilder
             {
@@ -50,14 +52,15 @@ namespace Demo.Modules.Menu
             row1.AddComponent(menuBuilder.Build());
             componentBuilder.AddRow(row1);
 
-            State.InfoMessage = "Select an item from the menu to add it to your cart.";
+            Alerts.SetInfoMessage(
+                content: "Select an item from the menu to add it to your cart.");
 
             var fields = new List<EmbedFieldBuilder>();
             fields.AddRange(paginationResult.Fields);
 
             var embedBuilder = new EmbedBuilder
             {
-                Title = "Menu",
+                Title = "Food Menu",
                 Fields = fields,
                 Timestamp = DateTimeOffset.UtcNow
             };

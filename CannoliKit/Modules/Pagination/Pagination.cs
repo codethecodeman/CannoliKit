@@ -45,6 +45,12 @@ namespace CannoliKit.Modules.Pagination
             bool resetListCounterBetweenPages = false
         )
         {
+            if (IsEnabled)
+            {
+                throw new InvalidOperationException(
+                    "Pagination is already set up.");
+            }
+
             IsEnabled = true;
 
             var result = new PaginationResult<T>(

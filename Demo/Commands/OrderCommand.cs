@@ -2,7 +2,7 @@
 using CannoliKit.Enums;
 using CannoliKit.Extensions;
 using CannoliKit.Interfaces;
-using Demo.Modules.Cart;
+using Demo.Modules.HelloWorld;
 using Discord;
 
 namespace Demo.Commands
@@ -22,7 +22,7 @@ namespace Demo.Commands
 
         public async Task RespondAsync(CannoliCommandContext context)
         {
-            var cartModule = _moduleFactory.CreateModule<CartModule>(context.Command.User);
+            var cartModule = _moduleFactory.CreateModule<HelloWorldModule>(context.Command.User);
             await context.Command.FollowupAsync(cartModule);
         }
 

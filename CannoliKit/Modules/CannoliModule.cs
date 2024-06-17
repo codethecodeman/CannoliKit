@@ -47,6 +47,11 @@ namespace CannoliKit.Modules
         protected readonly Cancellation.CancellationSettings Cancellation;
 
         /// <summary>
+        /// Alert message settings.
+        /// </summary>
+        protected readonly Alerts.AlertsSettings Alerts;
+
+        /// <summary>
         /// User that initiated the interaction in the current context.
         /// </summary>
         protected readonly SocketUser User;
@@ -76,6 +81,7 @@ namespace CannoliKit.Modules
             Db = db;
             DiscordClient = discordClient;
             Pagination = new Pagination.Pagination();
+            Alerts = new Alerts.AlertsSettings();
             User = factoryConfiguration.RequestingUser;
 
             State = new TState
@@ -120,28 +126,26 @@ namespace CannoliKit.Modules
 
             var embeds = new List<Embed>();
 
-            if (string.IsNullOrWhiteSpace(State.InfoMessage) == false)
+            if (Alerts.InfoMessage != null)
             {
                 var embedBuilder = new EmbedBuilder
                 {
-                    Description = $"ℹ️ {State.InfoMessage}",
-                    Color = new Color(88, 101, 242)
+                    Description = $"{Alerts.InfoMessage}",
+                    Color = Alerts.InfoMessage.Color
                 };
 
                 embeds.Add(embedBuilder.Build());
             }
 
-            if (string.IsNullOrWhiteSpace(State.ErrorMessage) == false)
+            if (Alerts.ErrorMessage != null)
             {
                 var embedBuilder = new EmbedBuilder
                 {
-                    Description = $"❌ {State.ErrorMessage}",
-                    Color = Color.Red,
+                    Description = $"{Alerts.ErrorMessage}",
+                    Color = Alerts.ErrorMessage.Color
                 };
 
                 embeds.Add(embedBuilder.Build());
-
-                State.ErrorMessage = null;
             }
 
             if (renderParts.EmbedBuilder != null)
@@ -181,8 +185,7 @@ namespace CannoliKit.Modules
         /// <summary>
         /// Modifies the Discord response with a refreshed module.
         /// </summary>
-        /// <returns></returns>
-        protected async Task RefreshModule()
+        protected async Task RefreshModuleAsync()
         {
             if (_interaction == null)
             {
@@ -219,9 +222,6 @@ namespace CannoliKit.Modules
 
             state.Db = Db;
 
-            state.InfoMessage = null;
-            state.ErrorMessage = null;
-
             State = state;
             Cancellation.State = state;
             RouteManager.State = state;
@@ -252,7 +252,7 @@ namespace CannoliKit.Modules
 
             rowBuilder.WithButton(new ButtonBuilder()
             {
-                CustomId = await RouteManager.CreateMessageComponentRoute(
+                CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                     callback: OnModulePageChanged,
                     parameter1: (Pagination.PageNumber - 1).ToString()),
                 Emote = Pagination.PreviousArrowEmoji,
@@ -261,7 +261,7 @@ namespace CannoliKit.Modules
 
             rowBuilder.WithButton(new ButtonBuilder()
             {
-                CustomId = await RouteManager.CreateMessageComponentRoute(
+                CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                     callback: OnModulePageChanged,
                     parameter1: (Pagination.PageNumber + 1).ToString()),
                 Emote = Pagination.NextArrowEmoji,
@@ -293,7 +293,7 @@ namespace CannoliKit.Modules
 
             var cancellationRoute = Cancellation.HasCustomRouting
                 ? Cancellation.Route!
-                : await RouteManager.CreateMessageComponentRoute(
+                : await RouteManager.CreateMessageComponentRouteAsync(
                     routeName: DefaultCancelRouteName,
                     callback: OnModuleCancelled);
 

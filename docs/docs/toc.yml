@@ -14,4 +14,14 @@
 - name: Modules
   items:
     - href: modules/introduction.md
+    - href: modules/factory.md
+      name: "Factory"
     - href: modules/routing.md
+    - href: modules/cancellation.md
+      name: "Cancellation"
+    - href: modules/alerts.md
+      name: "Alerts"
+    - href: modules/pagination.md
+      name: "Pagination"
+    - href: modules/expiration.md
+      name: "Expiration"

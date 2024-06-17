@@ -16,19 +16,9 @@ namespace CannoliKit.Modules.States
         public string Id { get; init; } = Guid.NewGuid().ToString();
 
         /// <summary>
-        /// Temporary info message. Will be reset upon module refresh.
+        /// UTC datetime of state expiration. Default is +12 hours.
         /// </summary>
-        public string? InfoMessage { get; set; }
-
-        /// <summary>
-        /// Temporary error message. Will be reset upon module refresh.
-        /// </summary>
-        public string? ErrorMessage { get; set; }
-
-        /// <summary>
-        /// UTC datetime of state expiration.
-        /// </summary>
-        public DateTime ExpiresOn { get; set; } = DateTime.UtcNow.AddHours(1);
+        public DateTime ExpiresOn { get; set; } = DateTime.UtcNow.AddHours(12);
 
         [JsonInclude]
         internal CannoliRouteId? CancelRoute { get; set; }

@@ -15,7 +15,7 @@ Cannoli Commands are transient. When a new interaction arrives for a command, a 
 ## Example
 
 ```csharp
-internal class ProfileCommand : ICannoliCommand
+public class ProfileCommand : ICannoliCommand
 {
     public string Name => "profile";
     public DeferralType DeferralType => DeferralType.Ephemeral;

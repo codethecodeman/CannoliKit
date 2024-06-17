@@ -5,8 +5,8 @@ Cannoli Modules utilize Discord components like buttons, select menus, and modal
 ## Route Management
 
 Routes are created using the inherited utility `RouteManager`. It has the following methods:
-- `CreateMessageComponentRoute`, to be used with buttons, select menus, etc.
-- `CreateModalRoute`, to be used with modal submissions.
+- `CreateMessageComponentRouteAsync`, to be used with buttons, select menus, etc.
+- `CreateModalRouteAsync`, to be used with modal submissions.
 
 Routes are expected to be plugged in as a `CustomId` for Discord components.
 
@@ -17,7 +17,7 @@ var buttons = new List<ButtonBuilder>
     {
         Label = "Send Email",
         Style = ButtonStyle.Primary,
-        CustomId = await RouteManager.CreateMessageComponentRoute(
+        CustomId = await RouteManager.CreateMessageComponentRouteAsync(
             callback: OnSendEmail)
     }
 };
@@ -47,7 +47,7 @@ var buttons = new List<ButtonBuilder>
     {
         Label = "Click Me A Lot",
         Style = ButtonStyle.Primary,
-        CustomId = await RouteManager.CreateMessageComponentRoute(
+        CustomId = await RouteManager.CreateMessageComponentRouteAsync(
             callback: OnClickMe,
             routeName: "FooClickMeRoute")
     }
@@ -56,7 +56,7 @@ var buttons = new List<ButtonBuilder>
 
 ## Passing Routes
 
-Cannoli Modules sometimes redirect to other modules within their workflow. For example, a `CartModule` might open a `MenuModule` to select items to add to a cart. You may wish for the user to return to their cart after an item is selected. To handle that, use the `RouteConfigurationBuilder` when using an `ICannoliModuleFactory`. You can find a full example in the [Demo project](https://github.com/codethecodeman/CannoliKit/tree/main/Demo).
+Cannoli Modules sometimes redirect to other modules within their workflow. For example, a `CartModule` might open a `MenuModule` to select items to add to a cart. You may wish for the user to return to their cart after an item is selected. To handle that, use the `RouteConfigurationBuilder` when creating a module with `ICannoliModuleFactory`. 
 
 ### Example setup in `CartModule`
 
@@ -69,11 +69,11 @@ var menuModule = _cannoliModuleFactory.CreateModule<MenuModule>(
     requestingUser: User,
     routing: builder
         .WithCancellationRoute(
-            routeId: await RouteManager.CreateMessageComponentRoute(
+            routeId: await RouteManager.CreateMessageComponentRouteAsync(
                 callback: OnRefreshCart))
         .WithReturnRoute(
             tag: "ItemSelected",
-            routeId: await RouteManager.CreateMessageComponentRoute(
+            routeId: await RouteManager.CreateMessageComponentRouteAsync(
                 callback: OnItemSelected))
         .Build());
 

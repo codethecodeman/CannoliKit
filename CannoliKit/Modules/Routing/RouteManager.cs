@@ -52,7 +52,7 @@ namespace CannoliKit.Modules.Routing
         /// <param name="parameter2">Generic string parameter 2, to be passed to the receiving callback.</param>
         /// <param name="parameter3">Generic string parameter 3, to be passed to the receiving callback.</param>
         /// <returns>New Cannoli Route ID.</returns>
-        public async Task<CannoliRouteId> CreateMessageComponentRoute(
+        public async Task<CannoliRouteId> CreateMessageComponentRouteAsync(
             MessageComponentCallback callback,
             bool isDeferred = true,
             string? routeName = null,
@@ -81,7 +81,7 @@ namespace CannoliKit.Modules.Routing
         /// <param name="parameter2">Generic string parameter 2, to be passed to the receiving callback.</param>
         /// <param name="parameter3">Generic string parameter 3, to be passed to the receiving callback.</param>
         /// <returns>New Cannoli Route ID.</returns>
-        public async Task<CannoliRouteId> CreateModalRoute(
+        public async Task<CannoliRouteId> CreateModalRouteAsync(
             ModalCallback callback,
             string? routeName = null,
             string? parameter1 = null,
