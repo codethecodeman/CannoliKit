@@ -2,7 +2,7 @@
 
 ## CannoliKit
 Release builds of CannoliKit can be added to your project via NuGet:
-- (Coming soon)
+- [CannoliKit](https://www.nuget.org/packages/CannoliKit)
 
 ## Microsoft Entity Framework Core (EF Core)
 CannoliKit uses [EF Core](https://learn.microsoft.com/en-us/ef/core/) to support its various features. 
