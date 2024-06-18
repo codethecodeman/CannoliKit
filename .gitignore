@@ -396,3 +396,8 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# CannoliKit
+/Demo/token.json
+/docs/_site/**
+/docs/api/**
