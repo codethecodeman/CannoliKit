@@ -1,6 +1,9 @@
 ![CannoliKit](/docs/images/LogoBanner.png "CannoliKit")
 
 <p align="center">
+  <a href="https://www.nuget.org/packages/CannoliKit">
+    <img src="https://img.shields.io/nuget/v/CannoliKit" alt="Nuget Version">
+  </a>
   <a href="https://github.com/codethecodeman/CannoliKit/actions/workflows/docs.yml">
     <img src="https://github.com/codethecodeman/CannoliKit/actions/workflows/docs.yml/badge.svg" alt="Docs Build Status">
   </a>
