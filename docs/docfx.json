@@ -36,8 +36,8 @@
     "globalMetadata": {
       "_appName": "CannoliKit",
       "_appTitle": "CannoliKit",
-	  "_appFaviconPath": "../images/LogoSmall.svg",
-	  "_appLogoPath": "../images/LogoBrand.svg",
+	  "_appFaviconPath": "images/LogoSmall.svg",
+	  "_appLogoPath": "images/LogoBrand.svg",
       "_enableSearch": true,
       "pdf": false
     },
