@@ -33,7 +33,7 @@ namespace CannoliKit.Modules.States
         /// <summary>
         /// Remove the state from the database.
         /// </summary>
-        public async Task ExpireNow()
+        public async Task ExpireNowAsync()
         {
             IsExpiringNow = true;
             await SaveStateUtility.RemoveState(Db, Id);

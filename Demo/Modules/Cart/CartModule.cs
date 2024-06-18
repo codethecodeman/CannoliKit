@@ -179,7 +179,7 @@ namespace Demo.Modules.Cart
                     $"Ok, your order is placed and will be fulfilled shortly! For reference your Order ID is `{groceryOrder.Id}`.";
             });
 
-            await State.ExpireNow();
+            await State.ExpireNowAsync();
         }
 
         private async Task OnOpenMenu(SocketMessageComponent messageComponent, CannoliRoute route)

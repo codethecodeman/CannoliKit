@@ -5,7 +5,7 @@ namespace CannoliKit.Modules.Alerts
     /// <summary>
     /// Handles alert message settings for a Cannoli Module.
     /// </summary>
-    public class AlertsSettings
+    public sealed class AlertsSettings
     {
         internal AlertMessage? InfoMessage { get; private set; }
         internal AlertMessage? ErrorMessage { get; private set; }

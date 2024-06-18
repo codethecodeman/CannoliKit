@@ -2,7 +2,7 @@
 
 namespace CannoliKit.Modules.Alerts
 {
-    internal class AlertMessage
+    internal sealed class AlertMessage
     {
         internal Emoji Emoji { get; init; } = null!;
         internal string Content { get; init; } = null!;
