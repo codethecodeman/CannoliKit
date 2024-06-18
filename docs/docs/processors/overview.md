@@ -9,6 +9,9 @@ To create a processor, create a class that implements `ICannoliProcessor<T>`, wh
 ### Enqueueing new jobs
 To enqueue a new job, inject an instance of `ICannoliJobQueue<T>` into any DI compatible class. From there, you can use `EnqueueJob(T job, Priority priority)`. Jobs enqueued with `Priority.High` will be dequeued sooner than `Priority.Normal`. 
 
+### Scheduling repeating jobs
+You can schedule a repeating job via `ICannoliJobQueue<T>`, by calling `ScheduleRepeatingJob(Timespan t, T Job, bool runImmediately)`.
+
 ## Lifetime
 
 Cannoli Processors are transient. When a new job arrives in the job queue, a new instance of the class will be created using DI. If you need to access shared variables across requests, you may need to implement a singleton service.
