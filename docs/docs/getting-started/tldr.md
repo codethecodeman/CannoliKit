@@ -12,6 +12,6 @@ After [installing CannoliKit](../installation.md) and other related packages, yo
 
 ## Next Steps
 Once you are set up, check out CannoliKit features: 
-- [Cannoli Commands](dependency-injection.md)
-- [Cannoli Processors](dependency-injection.md)
-- [Cannoli Modules](dependency-injection.md)
+- [Cannoli Commands](../commands/overview.md)
+- [Cannoli Processors](../processors/overview.md)
+- [Cannoli Modules](../modules/introduction.md)

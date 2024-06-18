@@ -131,15 +131,21 @@ namespace Demo.Migrations
 
             modelBuilder.Entity("Demo.Models.GroceryOrderItem", b =>
                 {
-                    b.Property<int>("GroceryOrderId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("FoodItemId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("GroceryOrderId", "FoodItemId");
+                    b.Property<int>("GroceryOrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("FoodItemId");
+
+                    b.HasIndex("GroceryOrderId");
 
                     b.ToTable("GroceryOrderItems");
                 });

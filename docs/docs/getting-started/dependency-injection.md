@@ -156,6 +156,6 @@ public class Program
 
 ## Next Steps
 Your bot is online and using CannoliKit! Now, it is time to implement features:
-- [Cannoli Commands](dependency-injection.md)
-- [Cannoli Processors](dependency-injection.md)
-- [Cannoli Modules](dependency-injection.md)
+- [Cannoli Commands](../commands/overview.md)
+- [Cannoli Processors](../processors/overview.md)
+- [Cannoli Modules](../modules/introduction.md)

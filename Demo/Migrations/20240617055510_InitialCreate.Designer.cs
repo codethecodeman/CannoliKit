@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Demo.Migrations
 {
     [DbContext(typeof(DemoDbContext))]
-    [Migration("20240609052614_InitialCreate")]
+    [Migration("20240617055510_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -134,15 +134,21 @@ namespace Demo.Migrations
 
             modelBuilder.Entity("Demo.Models.GroceryOrderItem", b =>
                 {
-                    b.Property<int>("GroceryOrderId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("FoodItemId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("GroceryOrderId", "FoodItemId");
+                    b.Property<int>("GroceryOrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("FoodItemId");
+
+                    b.HasIndex("GroceryOrderId");
 
                     b.ToTable("GroceryOrderItems");
                 });

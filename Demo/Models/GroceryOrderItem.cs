@@ -1,12 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Demo.Models
 {
-    [PrimaryKey(nameof(GroceryOrderId), nameof(FoodItemId))]
     public class GroceryOrderItem
     {
+        [Key]
+        public int Id { get; set; }
+
+        [Required]
         public int GroceryOrderId { get; init; }
+
+        [Required]
         public int FoodItemId { get; init; }
 
         [ForeignKey(nameof(GroceryOrderId))]

@@ -86,12 +86,14 @@ namespace Demo.Migrations
                 name: "GroceryOrderItems",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     GroceryOrderId = table.Column<int>(type: "INTEGER", nullable: false),
                     FoodItemId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GroceryOrderItems", x => new { x.GroceryOrderId, x.FoodItemId });
+                    table.PrimaryKey("PK_GroceryOrderItems", x => x.Id);
                     table.ForeignKey(
                         name: "FK_GroceryOrderItems_FoodItems_FoodItemId",
                         column: x => x.FoodItemId,
@@ -125,6 +127,11 @@ namespace Demo.Migrations
                 name: "IX_GroceryOrderItems_FoodItemId",
                 table: "GroceryOrderItems",
                 column: "FoodItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GroceryOrderItems_GroceryOrderId",
+                table: "GroceryOrderItems",
+                column: "GroceryOrderId");
         }
 
         /// <inheritdoc />
