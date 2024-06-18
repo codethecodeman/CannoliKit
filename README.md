@@ -7,6 +7,6 @@ Affectionately named after my orange cat, Cannoli.
 Created to keep myself from rewriting the same code, time and time again.
 
 ## Documentation
-- (Coming soon)
+- [https://codethecodeman.github.io/CannoliKit/](https://codethecodeman.github.io/CannoliKit/)
 ## Installation (NuGet)
 - (Coming soon)
