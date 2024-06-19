@@ -50,6 +50,7 @@ namespace CannoliKit
             SubscribeLoggedInEvent();
             SubscribeCommandEvents();
             SubscribeMessageComponentEvents();
+            SubscribeAutocompleteEvents();
             SubscribeModalEvents();
         }
 
@@ -69,31 +70,57 @@ namespace CannoliKit
             {
                 _ = Task.Run(async () =>
                 {
-                    await EnqueueCommandEvent(arg);
+                    await EnqueueCommandEvent(arg.CommandName, arg);
+                });
+
+                await Task.CompletedTask;
+            }
+        }
+        private void SubscribeAutocompleteEvents()
+        {
+            _discordClient.AutocompleteExecuted += Enqueue;
+            return;
+
+            async Task Enqueue(SocketAutocompleteInteraction arg)
+            {
+                _ = Task.Run(async () =>
+                {
+                    await EnqueueCommandEvent(arg.Data.CommandName, arg);
                 });
 
                 await Task.CompletedTask;
             }
         }
 
-        private async Task EnqueueCommandEvent(SocketCommandBase arg)
+        private async Task EnqueueCommandEvent(string commandName, SocketInteraction arg)
         {
-            _commandRegistry.Commands.TryGetValue(arg.CommandName, out var attributes);
-
+            _commandRegistry.Commands.TryGetValue(commandName, out var attributes);
             if (attributes == null) return;
 
-            if (attributes.DeferralType != DeferralType.None)
+            var priority = Priority.Normal;
+
+            switch (arg)
             {
-                var isEphemeral = attributes.DeferralType == DeferralType.Ephemeral;
-                await arg.DeferAsync(ephemeral: isEphemeral);
+                case SocketCommandBase when attributes.DeferralType != DeferralType.None:
+                    {
+                        await arg.DeferAsync(ephemeral:
+                            attributes.DeferralType == DeferralType.Ephemeral);
+                        break;
+                    }
+                case SocketCommandBase:
+                case SocketAutocompleteInteraction:
+                    priority = Priority.High;
+                    break;
             }
 
             _commandJobQueue.EnqueueJob(
                 new CannoliCommandJob()
                 {
-                    SocketCommand = arg,
+                    CommandName = commandName,
+                    Command = arg as SocketCommandBase,
+                    Autocomplete = arg as SocketAutocompleteInteraction,
                 },
-                (attributes.DeferralType == DeferralType.None) ? Priority.High : Priority.Normal);
+                priority);
         }
 
         private void SubscribeMessageComponentEvents()
