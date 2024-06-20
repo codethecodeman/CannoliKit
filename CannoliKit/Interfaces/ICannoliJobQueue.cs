@@ -15,7 +15,8 @@ namespace CannoliKit.Interfaces
         /// </summary>
         /// <param name="job">Job to enqueue.</param>
         /// <param name="priority">Job priority.</param>
-        void EnqueueJob(TJob job, Priority priority = Priority.Normal);
+        /// <returns>Task completion source that will complete when the job is finished executing.</returns>
+        TaskCompletionSource EnqueueJob(TJob job, Priority priority = Priority.Normal);
 
         /// <summary>
         /// Schedule a repeating job to be handled by the corresponding <see cref="ICannoliProcessor{T}"/>.

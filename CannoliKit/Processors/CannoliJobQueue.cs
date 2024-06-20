@@ -1,6 +1,7 @@
 ﻿using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Processors.Channels;
+using CannoliKit.Processors.Jobs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -13,7 +14,7 @@ internal sealed class CannoliJobQueue<TContext, TJob> : ICannoliJobQueue<TJob>, 
     where TContext : DbContext, ICannoliDbContext
 {
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly PriorityChannel<TJob> _channel;
+    private readonly PriorityChannel<JobWrapper<TJob>> _channel;
     private readonly ILogger<ICannoliJobQueue<TJob>> _logger;
     private readonly ConcurrentBag<Timer> _repeatingWorkTimers;
     private readonly SemaphoreSlim _taskSemaphore;
@@ -27,7 +28,7 @@ internal sealed class CannoliJobQueue<TContext, TJob> : ICannoliJobQueue<TJob>, 
     {
         _scopeFactory = serviceScopeFactory;
         _logger = logger;
-        _channel = new PriorityChannel<TJob>();
+        _channel = new PriorityChannel<JobWrapper<TJob>>();
         _maxConcurrentJobsCount = options?.MaxConcurrentJobs ?? int.MaxValue;
         _isRunning = true;
         _isDisposed = false;
@@ -53,9 +54,15 @@ internal sealed class CannoliJobQueue<TContext, TJob> : ICannoliJobQueue<TJob>, 
         GC.SuppressFinalize(this);
     }
 
-    public void EnqueueJob(TJob job, Priority priority = Priority.Normal)
+    public TaskCompletionSource EnqueueJob(TJob job, Priority priority = Priority.Normal)
     {
-        _channel.Write(job, priority);
+        var tcs = new TaskCompletionSource();
+
+        _channel.Write(
+            new JobWrapper<TJob>(job, tcs),
+            priority);
+
+        return tcs;
     }
 
     private async Task InitializeTaskQueue()
@@ -69,7 +76,7 @@ internal sealed class CannoliJobQueue<TContext, TJob> : ICannoliJobQueue<TJob>, 
                 await Task.Delay(1000);
             }
 
-            TJob item;
+            JobWrapper<TJob> item;
 
             try
             {
@@ -88,6 +95,7 @@ internal sealed class CannoliJobQueue<TContext, TJob> : ICannoliJobQueue<TJob>, 
                 try
                 {
                     await ProcessWork(item);
+                    item.TaskCompletionSource.SetResult();
                 }
                 finally
                 {
@@ -99,7 +107,7 @@ internal sealed class CannoliJobQueue<TContext, TJob> : ICannoliJobQueue<TJob>, 
         for (var i = 0; i < _maxConcurrentJobsCount; i++) await _taskSemaphore.WaitAsync();
     }
 
-    private async Task ProcessWork(TJob item)
+    private async Task ProcessWork(JobWrapper<TJob> item)
     {
         try
         {
@@ -107,12 +115,14 @@ internal sealed class CannoliJobQueue<TContext, TJob> : ICannoliJobQueue<TJob>, 
             var jobHandler = scope.ServiceProvider.GetRequiredService<ICannoliProcessor<TJob>>();
             var db = scope.ServiceProvider.GetRequiredService<TContext>();
 
-            await jobHandler.HandleJobAsync(item);
+            await jobHandler.HandleJobAsync(item.Job);
 
             await db.SaveChangesAsync();
         }
         catch (Exception ex)
         {
+            item.TaskCompletionSource.SetException(ex);
+
             _logger.LogCritical(
                 ex,
                 "Failed to process {jobType}. ",
