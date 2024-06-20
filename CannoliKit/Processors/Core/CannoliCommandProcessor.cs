@@ -12,12 +12,12 @@ namespace CannoliKit.Processors.Core
     {
         private readonly CannoliCommandRegistry _commandRegistry;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ILogger<CannoliCommandJob> _logger;
+        private readonly ILogger<CannoliCommandProcessor> _logger;
 
         public CannoliCommandProcessor(
             CannoliCommandRegistry commandRegistry,
             IServiceProvider serviceProvider,
-            ILogger<CannoliCommandJob> logger)
+            ILogger<CannoliCommandProcessor> logger)
         {
             _commandRegistry = commandRegistry;
             _serviceProvider = serviceProvider;
@@ -26,25 +26,35 @@ namespace CannoliKit.Processors.Core
 
         public async Task HandleJobAsync(CannoliCommandJob job)
         {
-            var commandName = job.SocketCommand.CommandName;
-
-            _commandRegistry.Commands.TryGetValue(commandName, out var attributes);
+            _commandRegistry.Commands.TryGetValue(job.CommandName, out var attributes);
 
             if (attributes == null)
             {
                 throw new InvalidOperationException(
-                    $"Unable to find registered Cannoli command with name {commandName}");
+                    $"Unable to find registered Cannoli command with name {job.CommandName}");
             }
 
-            _logger.LogInformation(
-                "Received command {commandName} from user {username} ({userId})",
-                commandName,
-                job.SocketCommand.User.Username,
-                job.SocketCommand.User.Id);
+            if (job.Command != null)
+            {
+                _logger.LogInformation(
+                    "Received command {commandName} from user {username} ({userId})",
+                    job.CommandName,
+                    job.Command.User.Username,
+                    job.Command.User.Id);
+            }
 
             var command = (ICannoliCommand)_serviceProvider.GetRequiredService(attributes.Type);
 
-            await command.RespondAsync(BuildContext(job));
+            if (job.Command != null)
+            {
+                await command.RespondAsync(BuildContext(job));
+            }
+
+            if (job.Autocomplete != null
+                && command is ICannoliAutocompleteCommand autocomplete)
+            {
+                await autocomplete.AutocompleteAsync(job.Autocomplete);
+            }
         }
 
         private static CannoliCommandContext BuildContext(CannoliCommandJob job)
@@ -52,7 +62,7 @@ namespace CannoliKit.Processors.Core
             IApplicationCommandInteractionDataOption? subCommand = null;
             IApplicationCommandInteractionDataOption? subCommandGroup = null;
 
-            if (job.SocketCommand is SocketSlashCommand slashCommand)
+            if (job.Command is SocketSlashCommand slashCommand)
             {
                 subCommandGroup =
                     slashCommand.Data.Options.FirstOrDefault(
@@ -72,7 +82,7 @@ namespace CannoliKit.Processors.Core
 
             return new CannoliCommandContext
             {
-                Command = job.SocketCommand,
+                Command = job.Command!,
                 SubCommandGroup = subCommandGroup,
                 SubCommand = subCommand,
             };

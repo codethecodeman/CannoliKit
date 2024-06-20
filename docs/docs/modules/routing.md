@@ -30,6 +30,17 @@ private async Task OnSendEmail(SocketMessageComponent messageComponent, CannoliR
 }
 ```
 
+## Concurrency
+Routes are executed in the order they arrive, one at a time. This guarantees safe access to the module state. If you would like for a route callback to be executed in parallel, decorate the method with the `ParallelExecution` attribute.
+
+```csharp
+[ParallelExecution]
+private async Task OnSendEmail(SocketMessageComponent messageComponent, CannoliRoute route)
+{
+    // ...
+}
+```
+
 ## Static Routes
 
 By default, when you call `RefreshModule()`, all existing routes will be deleted with the expectation that new routes will be created in your `BuildLayout()` method. This works especially well with ephemeral modules.

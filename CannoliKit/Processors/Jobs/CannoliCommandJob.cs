@@ -4,6 +4,8 @@ namespace CannoliKit.Processors.Jobs
 {
     internal sealed class CannoliCommandJob
     {
-        internal SocketCommandBase SocketCommand { get; init; } = null!;
+        internal string CommandName { get; init; } = null!;
+        internal SocketCommandBase? Command { get; init; } = null!;
+        internal SocketAutocompleteInteraction? Autocomplete { get; init; } = null!;
     }
 }

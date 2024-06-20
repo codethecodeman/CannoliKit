@@ -240,7 +240,7 @@ namespace CannoliKit.Modules
 
         internal async Task OnModuleCancelled(SocketMessageComponent messageComponent, CannoliRoute route)
         {
-            await State.ExpireNow();
+            await State.ExpireNowAsync();
             await messageComponent.DeleteOriginalResponseAsync();
         }
 

@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Microsoft.Extensions.Logging;
 
-namespace Demo
+namespace Demo.Extensions
 {
     internal static class LoggerExtensions
     {
