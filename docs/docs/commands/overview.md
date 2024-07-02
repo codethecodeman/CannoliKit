@@ -51,3 +51,6 @@ public class ProfileCommand : ICannoliCommand
     }
 }
 ```
+
+## Autocomplete
+Your class can additionally implement `ICannoliAutocompleteCommand` to handle Discord autocomplete interactions.

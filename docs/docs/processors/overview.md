@@ -7,7 +7,7 @@
 To create a processor, create a class that implements `ICannoliProcessor<T>`, where `T` is the job type. This will require you to implement the method `HandleJobAsync(T job)`. The processor will be automatically discovered at startup and registered with DI.
 
 ### Enqueueing new jobs
-To enqueue a new job, inject an instance of `ICannoliJobQueue<T>` into any DI compatible class. From there, you can use `EnqueueJob(T job, Priority priority)`. Jobs enqueued with `Priority.High` will be dequeued sooner than `Priority.Normal`. 
+To enqueue a new job, inject an instance of `ICannoliJobQueue<T>` into any DI compatible class. From there, you can use `EnqueueJob(T job, Priority priority)`. Jobs enqueued with `Priority.High` will be dequeued sooner than `Priority.Normal`. This method will return a `TaskCompletionSource` which you can use to track the job's status.
 
 ### Scheduling repeating jobs
 You can schedule a repeating job via `ICannoliJobQueue<T>`, by calling `ScheduleRepeatingJob(Timespan t, T Job, bool runImmediately)`.
