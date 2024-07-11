@@ -48,7 +48,7 @@ namespace CannoliKit.Extensions
             services.AddTransient<ICannoliProcessor<CannoliCommandJob>, CannoliCommandProcessor>();
 
             services.AddSingleton<ICannoliJobQueue<CannoliModuleEventJob>, CannoliJobQueue<TContext, CannoliModuleEventJob>>();
-            services.AddTransient<ICannoliProcessor<CannoliModuleEventJob>, CannoliModuleEventProcessor>();
+            services.AddTransient<ICannoliProcessor<CannoliModuleEventJob>, CannoliModuleEventProcessor<TContext>>();
 
             services.AddTransient<ICannoliModuleFactory, CannoliModuleFactory>();
 

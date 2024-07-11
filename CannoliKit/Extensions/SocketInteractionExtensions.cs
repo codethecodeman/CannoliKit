@@ -4,7 +4,7 @@ using Discord.WebSocket;
 namespace CannoliKit.Extensions
 {
     /// <summary>
-    /// CannoliKit extensions for SocketInteraction.
+    /// CannoliKit extension methods for <see cref="SocketInteraction"/>.
     /// </summary>
     public static class SocketInteractionExtensions
     {

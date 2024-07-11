@@ -192,6 +192,7 @@ namespace CannoliKit.Modules
                 throw new InvalidOperationException(
                     "Module does not have an interaction context to reply to.");
             }
+
             if (_interaction.HasResponded == false)
             {
                 await _interaction.DeferAsync();

@@ -1,7 +1,6 @@
 ﻿using CannoliKit.Enums;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
-using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 
 namespace CannoliKit.Utilities
@@ -98,36 +97,6 @@ namespace CannoliKit.Utilities
         internal static bool IsValidRouteId(string customId)
         {
             return customId.StartsWith(RoutePrefix, StringComparison.OrdinalIgnoreCase);
-        }
-
-        internal static async Task RouteToModuleCallback(
-            ICannoliDbContext db,
-            DiscordSocketClient discordClient,
-            CannoliRoute route,
-            object parameter)
-        {
-            if (route.StateIdToBeDeleted != null)
-            {
-                await SaveStateUtility.RemoveState(db, route.StateIdToBeDeleted);
-            }
-
-            var classType = ReflectionUtility.GetType(route.CallbackType)!;
-
-            var callbackMethodInfo = ReflectionUtility.GetMethodInfo(classType, route.CallbackMethod)!;
-            var loadStateMethodInfo = ReflectionUtility.GetMethodInfo(classType, "LoadModuleState")!;
-            var saveStateMethodInfo = ReflectionUtility.GetMethodInfo(classType, "SaveModuleState")!;
-
-            var target = Activator.CreateInstance(classType, [db, discordClient, null]);
-
-            var loadStateTask = (Task)loadStateMethodInfo.Invoke(target, [route.StateId])!;
-            await loadStateTask;
-
-            var callbackTask = (Task)callbackMethodInfo.Invoke(target, [parameter, route])!;
-            await callbackTask;
-
-            var saveStateTask = (Task)saveStateMethodInfo.Invoke(target, null)!;
-            await saveStateTask;
-
         }
     }
 }

@@ -16,11 +16,11 @@ namespace CannoliKit.Commands
         /// <summary>
         /// If command contains subcommand groups, the option group representing the subcommand group. Null if not applicable.
         /// </summary>
-        public IApplicationCommandInteractionDataOption? SubCommandGroup { get; init; }
+        public IApplicationCommandInteractionDataOption? SubCommandGroupOption { get; init; }
 
         /// <summary>
         /// If command contains subcommands, the option group representing the subcommand. Null if not applicable.
         /// </summary>
-        public IApplicationCommandInteractionDataOption? SubCommand { get; init; }
+        public IApplicationCommandInteractionDataOption? SubCommandOption { get; init; }
     }
 }
