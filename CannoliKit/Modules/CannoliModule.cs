@@ -68,6 +68,8 @@ namespace CannoliKit.Modules
 
         private readonly SocketInteraction? _interaction;
 
+        private bool _isBuilt;
+
         private const string DefaultCancelRouteName = "CannoliKit.DefaultCancelRoute";
 
         /// <summary>
@@ -109,8 +111,15 @@ namespace CannoliKit.Modules
             }
         }
 
-        internal override async Task<CannoliModuleFinalComponents> BuildComponents()
+        /// <inheritdoc/>
+        public override async Task<CannoliModuleComponents> BuildComponentsAsync()
         {
+            if (_isBuilt)
+            {
+                throw new InvalidOperationException(
+                    "Module has already been built. It cannot be rebuilt.");
+            }
+
             var renderParts = await BuildLayout();
 
             await RouteUtility.RemoveRoutes(Db, State.Id);
@@ -170,7 +179,9 @@ namespace CannoliKit.Modules
 
             await SaveModuleState();
 
-            return new CannoliModuleFinalComponents(
+            _isBuilt = true;
+
+            return new CannoliModuleComponents(
                 content,
                 embeds?.ToArray(),
                 componentBuilder?.Build());

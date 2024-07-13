@@ -15,10 +15,10 @@ namespace CannoliKit.Extensions
         /// <param name="module">Module to be used in the response.</param>
         public static async Task SendMessageAsync(this ISocketMessageChannel channel, CannoliModuleBase module)
         {
-            var moduleComponents = await module.BuildComponents();
+            var moduleComponents = await module.BuildComponentsAsync();
 
             await channel.SendMessageAsync(
-                text: moduleComponents.Content,
+                text: moduleComponents.Text,
                 embeds: moduleComponents.Embeds,
                 components: moduleComponents.MessageComponent);
         }

@@ -93,13 +93,9 @@ namespace CannoliKit.Extensions
                         MaxConcurrentJobs = attribute?.MaxConcurrentJobs ?? int.MaxValue
                     };
 
-                    // Get the constructor info
                     var constructor = jobQueueType.GetConstructor([typeof(IServiceScopeFactory), jobQueueLoggerType, typeof(CannoliJobQueueOptions)]);
 
-                    // Invoke the constructor with the correct parameters
                     return constructor!.Invoke([scopeFactory, logger, options]);
-
-                    // return Activator.CreateInstance(jobQueueType, sp, scopeFactory, logger, options)!;
                 });
 
                 services.AddTransient(processorInterfaceType, processor);

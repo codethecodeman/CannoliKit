@@ -9,7 +9,13 @@ namespace CannoliKit.Modules
     {
         internal CannoliModuleBase() { }
 
-        internal abstract Task<CannoliModuleFinalComponents> BuildComponents();
+        /// <summary>
+        /// Build the module into components that can be applied to a Discord message.
+        /// </summary>
+        /// <returns>
+        /// Cannoli module components.
+        /// </returns>
+        public abstract Task<CannoliModuleComponents> BuildComponentsAsync();
         internal abstract Task LoadModuleState(CannoliRoute route);
         internal abstract Task SaveModuleState();
     }
