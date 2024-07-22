@@ -13,7 +13,7 @@ namespace CannoliKit
     /// <inheritdoc cref="ICannoliClient"/>
     /// </summary>
     /// <typeparam name="TContext"><see cref="DbContext"/> that implements <see cref="ICannoliDbContext"/>.</typeparam>
-    public class CannoliClient<TContext> : ICannoliClient
+    public sealed class CannoliClient<TContext> : ICannoliClient
         where TContext : DbContext, ICannoliDbContext
     {
         private readonly DiscordSocketClient _discordClient;
