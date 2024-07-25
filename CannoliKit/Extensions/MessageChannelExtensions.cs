@@ -1,4 +1,5 @@
 ﻿using CannoliKit.Modules;
+using Discord.Rest;
 using Discord.WebSocket;
 
 namespace CannoliKit.Extensions
@@ -13,11 +14,11 @@ namespace CannoliKit.Extensions
         /// </summary>
         /// <param name="channel">Discord message channel.</param>
         /// <param name="module">Module to be used in the response.</param>
-        public static async Task SendMessageAsync(this ISocketMessageChannel channel, CannoliModuleBase module)
+        public static async Task<RestUserMessage> SendMessageAsync(this ISocketMessageChannel channel, CannoliModuleBase module)
         {
             var moduleComponents = await module.BuildComponentsAsync();
 
-            await channel.SendMessageAsync(
+            return await channel.SendMessageAsync(
                 text: moduleComponents.Text,
                 embeds: moduleComponents.Embeds,
                 components: moduleComponents.MessageComponent);
