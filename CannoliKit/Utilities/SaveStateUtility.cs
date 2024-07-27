@@ -8,7 +8,10 @@ using System.Text.Json.Serialization;
 
 namespace CannoliKit.Utilities
 {
-    internal static class SaveStateUtility
+    /// <summary>
+    /// Utilities for Cannoli Save States.
+    /// </summary>
+    public static class SaveStateUtility
     {
         private static readonly JsonSerializerOptions JsonSerializerOptions;
 
@@ -73,7 +76,12 @@ namespace CannoliKit.Utilities
             entry.UpdatedOn = DateTime.UtcNow;
         }
 
-        internal static async Task RemoveState(ICannoliDbContext db, string stateId)
+        /// <summary>
+        /// Remove Cannoli Save State from database.
+        /// </summary>
+        /// <param name="db">Database.</param>
+        /// <param name="stateId">Save State ID.</param>
+        public static async Task RemoveStateAsync(ICannoliDbContext db, string stateId)
         {
             var savedState = await db.CannoliSaveStates
                 .Where(g => g.Id == stateId)

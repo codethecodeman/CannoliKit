@@ -55,8 +55,6 @@ namespace CannoliKit.Processors.Core
             }
 
             await ProcessJobInOrder(job, interaction, requestingUser);
-
-            await Task.CompletedTask;
         }
 
         private async Task RouteToModuleCallback(CannoliRoute route, SocketInteraction interaction, SocketUser user)
@@ -113,7 +111,7 @@ namespace CannoliKit.Processors.Core
                     x.Embeds = null;
                 });
 
-                await SaveStateUtility.RemoveState(_db, job.Route.StateId);
+                await SaveStateUtility.RemoveStateAsync(_db, job.Route.StateId);
             }
             finally
             {

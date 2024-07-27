@@ -224,7 +224,7 @@ namespace CannoliKit.Modules
         {
             if (route.StateIdToBeDeleted != null)
             {
-                await SaveStateUtility.RemoveState(Db, route.StateIdToBeDeleted);
+                await SaveStateUtility.RemoveStateAsync(Db, route.StateIdToBeDeleted);
             }
 
             var state = await SaveStateUtility.GetState<TState>(

@@ -66,14 +66,14 @@ namespace CannoliKit
             _discordClient.MessageCommandExecuted += Enqueue;
             return;
 
-            async Task Enqueue(SocketCommandBase arg)
+            Task Enqueue(SocketCommandBase arg)
             {
                 _ = Task.Run(async () =>
                 {
                     await EnqueueCommandEvent(arg.CommandName, arg);
                 });
 
-                await Task.CompletedTask;
+                return Task.CompletedTask;
             }
         }
         private void SubscribeAutocompleteEvents()
@@ -81,14 +81,14 @@ namespace CannoliKit
             _discordClient.AutocompleteExecuted += Enqueue;
             return;
 
-            async Task Enqueue(SocketAutocompleteInteraction arg)
+            Task Enqueue(SocketAutocompleteInteraction arg)
             {
                 _ = Task.Run(async () =>
                 {
                     await EnqueueCommandEvent(arg.Data.CommandName, arg);
                 });
 
-                await Task.CompletedTask;
+                return Task.CompletedTask;
             }
         }
 
@@ -129,14 +129,14 @@ namespace CannoliKit
             _discordClient.SelectMenuExecuted += Enqueue;
             return;
 
-            async Task Enqueue(SocketMessageComponent arg)
+            Task Enqueue(SocketMessageComponent arg)
             {
                 _ = Task.Run(async () =>
                 {
                     await EnqueueModuleEvent(arg);
                 });
 
-                await Task.CompletedTask;
+                return Task.CompletedTask;
             }
         }
 
@@ -145,14 +145,14 @@ namespace CannoliKit
             _discordClient.ModalSubmitted += Enqueue;
             return;
 
-            async Task Enqueue(SocketModal arg)
+            Task Enqueue(SocketModal arg)
             {
                 _ = Task.Run(async () =>
                 {
                     await EnqueueModuleEvent(arg);
                 });
 
-                await Task.CompletedTask;
+                return Task.CompletedTask;
             }
         }
 
@@ -181,7 +181,7 @@ namespace CannoliKit
                 await arg.DeferAsync();
             }
 
-            await EnqueueModuleEvent(new CannoliModuleEventJob
+            EnqueueModuleEvent(new CannoliModuleEventJob
             {
                 Route = route,
                 SocketMessageComponent = arg
@@ -209,19 +209,17 @@ namespace CannoliKit
                 return;
             }
 
-            await EnqueueModuleEvent(new CannoliModuleEventJob
+            EnqueueModuleEvent(new CannoliModuleEventJob
             {
                 Route = route,
                 SocketModal = arg
             });
         }
 
-        private async Task EnqueueModuleEvent(CannoliModuleEventJob cannoliModuleEventJob)
+        private void EnqueueModuleEvent(CannoliModuleEventJob cannoliModuleEventJob)
         {
             _moduleEventJobQueue.EnqueueJob(
                 cannoliModuleEventJob);
-
-            await Task.CompletedTask;
         }
 
         private async Task<CannoliRoute?> GetRoute(string customId)
