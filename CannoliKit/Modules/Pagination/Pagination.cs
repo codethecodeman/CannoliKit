@@ -36,7 +36,7 @@ namespace CannoliKit.Modules.Pagination
         /// <param name="resetListCounterBetweenPages">If list type is numbered, indicates if numbering should reset to 1 on each page.</param>
         /// <returns></returns>
         public PaginationResult<T> Setup<T>(
-            IList<T> items,
+            IEnumerable<T> items,
             Func<ListItem<T>, string> formatter,
             ListType listType = ListType.Bullet,
             int numItemsPerRow = 1,

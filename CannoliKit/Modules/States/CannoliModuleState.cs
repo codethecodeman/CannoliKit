@@ -36,7 +36,7 @@ namespace CannoliKit.Modules.States
         public async Task ExpireNowAsync()
         {
             IsExpiringNow = true;
-            await SaveStateUtility.RemoveState(Db, Id);
+            await SaveStateUtility.RemoveStateAsync(Db, Id);
         }
 
         internal async Task Save()

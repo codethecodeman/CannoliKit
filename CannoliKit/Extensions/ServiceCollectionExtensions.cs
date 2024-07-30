@@ -48,7 +48,7 @@ namespace CannoliKit.Extensions
             services.AddTransient<ICannoliProcessor<CannoliCommandJob>, CannoliCommandProcessor>();
 
             services.AddSingleton<ICannoliJobQueue<CannoliModuleEventJob>, CannoliJobQueue<TContext, CannoliModuleEventJob>>();
-            services.AddTransient<ICannoliProcessor<CannoliModuleEventJob>, CannoliModuleEventProcessor>();
+            services.AddTransient<ICannoliProcessor<CannoliModuleEventJob>, CannoliModuleEventProcessor<TContext>>();
 
             services.AddTransient<ICannoliModuleFactory, CannoliModuleFactory>();
 
@@ -93,13 +93,9 @@ namespace CannoliKit.Extensions
                         MaxConcurrentJobs = attribute?.MaxConcurrentJobs ?? int.MaxValue
                     };
 
-                    // Get the constructor info
                     var constructor = jobQueueType.GetConstructor([typeof(IServiceScopeFactory), jobQueueLoggerType, typeof(CannoliJobQueueOptions)]);
 
-                    // Invoke the constructor with the correct parameters
                     return constructor!.Invoke([scopeFactory, logger, options]);
-
-                    // return Activator.CreateInstance(jobQueueType, sp, scopeFactory, logger, options)!;
                 });
 
                 services.AddTransient(processorInterfaceType, processor);

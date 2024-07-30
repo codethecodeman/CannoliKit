@@ -83,8 +83,8 @@ namespace CannoliKit.Processors.Core
             return new CannoliCommandContext
             {
                 Command = job.Command!,
-                SubCommandGroup = subCommandGroup,
-                SubCommand = subCommand,
+                SubCommandGroupOption = subCommandGroup,
+                SubCommandOption = subCommand,
             };
         }
     }

@@ -54,13 +54,13 @@ namespace CannoliKit.Modules.Pagination
         /// </summary>
         public IReadOnlyList<EmbedFieldBuilder> Fields { get; }
 
-        private readonly IList<T> _items;
+        private readonly IEnumerable<T> _items;
         private readonly Func<ListItem<T>, string> _formatter;
         private readonly bool _resetListCounterBetweenPages;
         private readonly int _listStartIndex;
 
         internal PaginationResult(
-            IList<T> items,
+            IEnumerable<T> items,
             Func<ListItem<T>, string> formatter,
             ListType listType,
             int numItemsPerRow,
@@ -89,7 +89,7 @@ namespace CannoliKit.Modules.Pagination
 
         private void CalculatePages()
         {
-            NumItems = _items.Count;
+            NumItems = _items.Count();
             NumPages = (int)Math.Ceiling((double)NumItems / NumItemsPerPage);
 
             // If less than zero, reset to the last page.
@@ -132,11 +132,11 @@ namespace CannoliKit.Modules.Pagination
                 };
 
                 itemsOnPage.Add(
-                    new ListItem<T>(marker, _items[i]));
+                    new ListItem<T>(marker, _items.ElementAt(i)));
 
                 foreach (var property in properties)
                 {
-                    var value = property.GetValue(_items[i])?.ToString();
+                    var value = property.GetValue(_items.ElementAt(i))?.ToString();
                     if (value == null) continue;
                     if (maxPropertyLengths[property.Name] < value.Length)
                     {

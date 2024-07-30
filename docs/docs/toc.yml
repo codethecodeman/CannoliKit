@@ -16,6 +16,8 @@
     - href: modules/introduction.md
     - href: modules/factory.md
       name: "Factory"
+    - href: modules/sending.md
+      name: "Sending To The User"
     - href: modules/routing.md
     - href: modules/cancellation.md
       name: "Cancellation"
