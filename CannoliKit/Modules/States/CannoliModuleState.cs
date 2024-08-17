@@ -21,10 +21,16 @@ namespace CannoliKit.Modules.States
         public DateTime ExpiresOn { get; set; } = DateTime.UtcNow.AddHours(12);
 
         [JsonInclude]
+        [JsonPropertyName("Internal.CancelRoute")]
         internal CannoliRouteId? CancelRoute { get; set; }
 
         [JsonInclude]
+        [JsonPropertyName("Internal.ReturnRoutes")]
         internal Dictionary<string, CannoliRouteId> ReturnRoutes = [];
+
+        [JsonInclude]
+        [JsonPropertyName("Internal.PageNumbers")]
+        internal Dictionary<string, int> PageNumbers { get; set; } = [];
 
         internal ICannoliDbContext Db { get; set; } = null!;
         internal bool IsExpiringNow;

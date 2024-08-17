@@ -84,7 +84,6 @@ namespace CannoliKit.Modules
         {
             Db = db;
             DiscordClient = discordClient;
-            Pagination = new Pagination.Pagination();
             Alerts = new Alerts.AlertsSettings();
             User = factoryConfiguration.RequestingUser;
 
@@ -95,6 +94,7 @@ namespace CannoliKit.Modules
 
             RouteManager = new RouteManager(Db, GetType(), State);
             Cancellation = new Cancellation.CancellationSettings(State);
+            Pagination = new Pagination.Pagination(State);
 
             _interaction = factoryConfiguration.Interaction;
 
@@ -240,6 +240,7 @@ namespace CannoliKit.Modules
             State = state;
             Cancellation.State = state;
             RouteManager.State = state;
+            Pagination.State = state;
 
             await LoadReturnRoutes();
         }
@@ -247,8 +248,9 @@ namespace CannoliKit.Modules
         internal async Task OnModulePageChanged(SocketMessageComponent messageComponent, CannoliRoute route)
         {
             var offset = int.Parse(route.Parameter1!);
+            var id = route.Parameter2!;
 
-            Pagination.PageNumber += offset;
+            State.PageNumbers[id] += offset;
 
             await RefreshModuleAsync(AllowedMentions.None);
         }
@@ -270,7 +272,8 @@ namespace CannoliKit.Modules
                 CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                     callback: OnModulePageChanged,
                     routeName: PreviousPageRouteName,
-                    parameter1: (Pagination.PageNumber - 1).ToString()),
+                    parameter1: "-1",
+                    parameter2: Pagination.PaginationId),
                 Emote = Pagination.PreviousArrowEmoji,
                 Style = ButtonStyle.Secondary,
             });
@@ -280,7 +283,8 @@ namespace CannoliKit.Modules
                 CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                     callback: OnModulePageChanged,
                     routeName: NextPageRouteName,
-                    parameter1: (Pagination.PageNumber + 1).ToString()),
+                    parameter1: "1",
+                    parameter2: Pagination.PaginationId),
                 Emote = Pagination.NextArrowEmoji,
                 Style = ButtonStyle.Secondary,
             });
