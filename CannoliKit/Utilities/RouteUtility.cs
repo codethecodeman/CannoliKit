@@ -89,11 +89,12 @@ namespace CannoliKit.Utilities
                 StateId = stateId,
                 IsSynchronous = isSynchronous,
                 IsDeferred = isDeferred,
-                Parameter1 = parameter1,
-                Parameter2 = parameter2,
-                Parameter3 = parameter3,
                 IsNew = true,
             };
+
+            route.Parameter1 = parameter1;
+            route.Parameter2 = parameter2;
+            route.Parameter3 = parameter3;
 
             return route;
         }

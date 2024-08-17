@@ -70,6 +70,8 @@ namespace CannoliKit.Modules
 
         private bool _isBuilt;
 
+        private const string NextPageRouteName = "CannoliKit.NextPageRoute";
+        private const string PreviousPageRouteName = "CannoliKit.PreviousPageRoute";
         private const string DefaultCancelRouteName = "CannoliKit.DefaultCancelRoute";
 
         /// <summary>
@@ -124,7 +126,7 @@ namespace CannoliKit.Modules
 
             await RouteUtility.RemoveRoutes(Db, State.Id);
 
-            var content = renderParts.Content;
+            var content = renderParts.Text;
 
             var componentBuilder = renderParts.ComponentBuilder
                 ?? new ComponentBuilder();
@@ -247,7 +249,7 @@ namespace CannoliKit.Modules
 
             Pagination.PageNumber += offset;
 
-            await messageComponent.ModifyOriginalResponseAsync(this);
+            await RefreshModuleAsync();
         }
 
         internal async Task OnModuleCancelled(SocketMessageComponent messageComponent, CannoliRoute route)
@@ -266,6 +268,7 @@ namespace CannoliKit.Modules
             {
                 CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                     callback: OnModulePageChanged,
+                    routeName: PreviousPageRouteName,
                     parameter1: (Pagination.PageNumber - 1).ToString()),
                 Emote = Pagination.PreviousArrowEmoji,
                 Style = ButtonStyle.Secondary,
@@ -275,6 +278,7 @@ namespace CannoliKit.Modules
             {
                 CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                     callback: OnModulePageChanged,
+                    routeName: NextPageRouteName,
                     parameter1: (Pagination.PageNumber + 1).ToString()),
                 Emote = Pagination.NextArrowEmoji,
                 Style = ButtonStyle.Secondary,
