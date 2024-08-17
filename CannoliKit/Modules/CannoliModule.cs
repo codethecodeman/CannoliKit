@@ -198,7 +198,8 @@ namespace CannoliKit.Modules
         /// <summary>
         /// Modifies the Discord response with a refreshed module.
         /// </summary>
-        protected async Task RefreshModuleAsync()
+        /// <param name="allowedMentions">Allowed mentions.</param>
+        protected async Task RefreshModuleAsync(AllowedMentions? allowedMentions = null)
         {
             if (_interaction == null)
             {
@@ -211,7 +212,7 @@ namespace CannoliKit.Modules
                 await _interaction.DeferAsync();
             }
 
-            await _interaction.ModifyOriginalResponseAsync(this);
+            await _interaction.ModifyOriginalResponseAsync(this, allowedMentions);
         }
 
         internal override async Task SaveModuleState()
@@ -249,7 +250,7 @@ namespace CannoliKit.Modules
 
             Pagination.PageNumber += offset;
 
-            await RefreshModuleAsync();
+            await RefreshModuleAsync(AllowedMentions.None);
         }
 
         internal async Task OnModuleCancelled(SocketMessageComponent messageComponent, CannoliRoute route)

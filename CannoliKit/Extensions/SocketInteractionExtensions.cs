@@ -1,4 +1,5 @@
 ﻿using CannoliKit.Modules;
+using Discord;
 using Discord.WebSocket;
 
 namespace CannoliKit.Extensions
@@ -41,10 +42,15 @@ namespace CannoliKit.Extensions
         /// </summary>
         /// <param name="interaction">Discord interaction.</param>
         /// <param name="module">Module to be used in the modification.</param>
-        public static async Task ModifyOriginalResponseAsync(this SocketInteraction interaction, CannoliModuleBase module)
+        /// <param name="allowedMentions">Allowed mentions.</param>
+        public static async Task ModifyOriginalResponseAsync(this SocketInteraction interaction, CannoliModuleBase module, AllowedMentions? allowedMentions = null)
         {
             var moduleComponents = await module.BuildComponentsAsync();
-            await interaction.ModifyOriginalResponseAsync(moduleComponents.ApplyToMessageProperties);
+            await interaction.ModifyOriginalResponseAsync(m =>
+            {
+                moduleComponents.ApplyToMessageProperties(m);
+                m.AllowedMentions = allowedMentions;
+            });
         }
     }
 }
