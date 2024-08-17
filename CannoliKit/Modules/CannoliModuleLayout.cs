@@ -5,18 +5,18 @@ namespace CannoliKit.Modules
     /// <summary>
     /// Layout used to render a Cannoli Module in Discord.
     /// </summary>
-    /// <param name="content">Text message.</param>
+    /// <param name="text">Text message.</param>
     /// <param name="embedBuilder">Discord embed.</param>
     /// <param name="componentBuilder">Discord message components.</param>
     public sealed class CannoliModuleLayout(
-        string? content = null,
+        string? text = null,
         EmbedBuilder? embedBuilder = null,
         ComponentBuilder? componentBuilder = null)
     {
         /// <summary>
         /// Text message.
         /// </summary>
-        public string? Content { get; init; } = content;
+        public string? Text { get; init; } = text;
 
         /// <summary>
         /// Discord embed.
