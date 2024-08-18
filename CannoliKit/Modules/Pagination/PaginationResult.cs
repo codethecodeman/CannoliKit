@@ -109,14 +109,6 @@ namespace CannoliKit.Modules.Pagination
         {
             var itemsOnPage = new List<ListItem<T>>();
 
-            var properties = typeof(T).GetProperties();
-            var maxPropertyLengths = new Dictionary<string, int>();
-
-            foreach (var property in properties)
-            {
-                maxPropertyLengths[property.Name] = 0;
-            }
-
             for (var i = _listStartIndex; i < _listStartIndex + NumItemsPerPage; i++)
             {
                 if (i + 1 > NumItems) break;
@@ -133,16 +125,6 @@ namespace CannoliKit.Modules.Pagination
 
                 itemsOnPage.Add(
                     new ListItem<T>(marker, _items.ElementAt(i)));
-
-                foreach (var property in properties)
-                {
-                    var value = property.GetValue(_items.ElementAt(i))?.ToString();
-                    if (value == null) continue;
-                    if (maxPropertyLengths[property.Name] < value.Length)
-                    {
-                        maxPropertyLengths[property.Name] = value.Length;
-                    }
-                }
             }
 
             if (NumItems == 0)
@@ -162,8 +144,6 @@ namespace CannoliKit.Modules.Pagination
                 item.Marker = item.Marker.PadLeft(maxMarkerLength);
             }
 
-
-
             return itemsOnPage;
         }
 
@@ -177,7 +157,7 @@ namespace CannoliKit.Modules.Pagination
             {
                 for (var col = 0; col < NumItemsPerRow; col++)
                 {
-                    var index = col * numRows + row;
+                    var index = row * NumItemsPerRow + col;
                     if (index >= Items.Count) break;
                     sb.Append(_formatter(Items[index]));
                 }

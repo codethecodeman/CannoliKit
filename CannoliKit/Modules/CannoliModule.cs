@@ -70,6 +70,8 @@ namespace CannoliKit.Modules
 
         private bool _isBuilt;
 
+        private const string NextPageRouteName = "CannoliKit.NextPageRoute";
+        private const string PreviousPageRouteName = "CannoliKit.PreviousPageRoute";
         private const string DefaultCancelRouteName = "CannoliKit.DefaultCancelRoute";
 
         /// <summary>
@@ -82,7 +84,6 @@ namespace CannoliKit.Modules
         {
             Db = db;
             DiscordClient = discordClient;
-            Pagination = new Pagination.Pagination();
             Alerts = new Alerts.AlertsSettings();
             User = factoryConfiguration.RequestingUser;
 
@@ -93,6 +94,7 @@ namespace CannoliKit.Modules
 
             RouteManager = new RouteManager(Db, GetType(), State);
             Cancellation = new Cancellation.CancellationSettings(State);
+            Pagination = new Pagination.Pagination(State);
 
             _interaction = factoryConfiguration.Interaction;
 
@@ -124,7 +126,7 @@ namespace CannoliKit.Modules
 
             await RouteUtility.RemoveRoutes(Db, State.Id);
 
-            var content = renderParts.Content;
+            var content = renderParts.Text;
 
             var componentBuilder = renderParts.ComponentBuilder
                 ?? new ComponentBuilder();
@@ -196,7 +198,8 @@ namespace CannoliKit.Modules
         /// <summary>
         /// Modifies the Discord response with a refreshed module.
         /// </summary>
-        protected async Task RefreshModuleAsync()
+        /// <param name="allowedMentions">Allowed mentions.</param>
+        protected async Task RefreshModuleAsync(AllowedMentions? allowedMentions = null)
         {
             if (_interaction == null)
             {
@@ -209,7 +212,7 @@ namespace CannoliKit.Modules
                 await _interaction.DeferAsync();
             }
 
-            await _interaction.ModifyOriginalResponseAsync(this);
+            await _interaction.ModifyOriginalResponseAsync(this, allowedMentions);
         }
 
         internal override async Task SaveModuleState()
@@ -237,6 +240,7 @@ namespace CannoliKit.Modules
             State = state;
             Cancellation.State = state;
             RouteManager.State = state;
+            Pagination.State = state;
 
             await LoadReturnRoutes();
         }
@@ -244,10 +248,11 @@ namespace CannoliKit.Modules
         internal async Task OnModulePageChanged(SocketMessageComponent messageComponent, CannoliRoute route)
         {
             var offset = int.Parse(route.Parameter1!);
+            var id = route.Parameter2!;
 
-            Pagination.PageNumber += offset;
+            State.PageNumbers[id] += offset;
 
-            await messageComponent.ModifyOriginalResponseAsync(this);
+            await RefreshModuleAsync(AllowedMentions.None);
         }
 
         internal async Task OnModuleCancelled(SocketMessageComponent messageComponent, CannoliRoute route)
@@ -266,7 +271,9 @@ namespace CannoliKit.Modules
             {
                 CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                     callback: OnModulePageChanged,
-                    parameter1: (Pagination.PageNumber - 1).ToString()),
+                    routeName: PreviousPageRouteName,
+                    parameter1: "-1",
+                    parameter2: Pagination.PaginationId),
                 Emote = Pagination.PreviousArrowEmoji,
                 Style = ButtonStyle.Secondary,
             });
@@ -275,7 +282,9 @@ namespace CannoliKit.Modules
             {
                 CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                     callback: OnModulePageChanged,
-                    parameter1: (Pagination.PageNumber + 1).ToString()),
+                    routeName: NextPageRouteName,
+                    parameter1: "1",
+                    parameter2: Pagination.PaginationId),
                 Emote = Pagination.NextArrowEmoji,
                 Style = ButtonStyle.Secondary,
             });

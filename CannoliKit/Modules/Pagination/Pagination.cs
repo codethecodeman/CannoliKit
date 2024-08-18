@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using CannoliKit.Modules.States;
+using Discord;
 
 namespace CannoliKit.Modules.Pagination
 {
@@ -8,8 +9,12 @@ namespace CannoliKit.Modules.Pagination
     public sealed class Pagination
     {
         internal bool IsEnabled { get; private set; }
-        internal int PageNumber { get; set; }
+
         internal int NumPages { get; set; }
+
+        internal string? PaginationId { get; set; }
+
+        internal CannoliModuleState State { get; set; }
 
         /// <summary>
         /// Label to display on the previous arrow button. Default value is Left Arrow emoji.
@@ -21,7 +26,12 @@ namespace CannoliKit.Modules.Pagination
         /// </summary>
         public Emoji NextArrowEmoji { get; set; } = new("➡️");
 
-        internal Pagination() { }
+        private const string DefaultPaginationId = "CannoliKit.Default";
+
+        internal Pagination(CannoliModuleState state)
+        {
+            State = state;
+        }
 
         /// <summary>
         /// Setup pagination for this module.
@@ -34,6 +44,7 @@ namespace CannoliKit.Modules.Pagination
         /// <param name="numItemsPerPage">Number of items to display per page. Default value is 10.</param>
         /// <param name="numItemsPerField">Number of items to display per Discord embed field. Default value is 10.</param>
         /// <param name="resetListCounterBetweenPages">If list type is numbered, indicates if numbering should reset to 1 on each page.</param>
+        /// <param name="paginationId">If specified, the current page number will be saved to the module state using this ID. Otherwise, a default ID is used.</param>
         /// <returns></returns>
         public PaginationResult<T> Setup<T>(
             IEnumerable<T> items,
@@ -42,7 +53,8 @@ namespace CannoliKit.Modules.Pagination
             int numItemsPerRow = 1,
             int numItemsPerPage = 10,
             int numItemsPerField = 10,
-            bool resetListCounterBetweenPages = false
+            bool resetListCounterBetweenPages = false,
+            string? paginationId = null
         )
         {
             if (IsEnabled)
@@ -52,6 +64,13 @@ namespace CannoliKit.Modules.Pagination
             }
 
             IsEnabled = true;
+            paginationId ??= DefaultPaginationId;
+
+            if (State.PageNumbers.TryGetValue(paginationId, out var currentPageNumber) == false)
+            {
+                currentPageNumber = 0;
+                State.PageNumbers[paginationId] = currentPageNumber;
+            }
 
             var result = new PaginationResult<T>(
                 items,
@@ -61,10 +80,11 @@ namespace CannoliKit.Modules.Pagination
                 numItemsPerPage,
                 numItemsPerField,
                 resetListCounterBetweenPages,
-                PageNumber);
+                currentPageNumber);
 
-            PageNumber = result.PageNumber;
+            State.PageNumbers[paginationId] = result.PageNumber;
             NumPages = result.NumPages;
+            PaginationId = paginationId;
 
             return result;
         }

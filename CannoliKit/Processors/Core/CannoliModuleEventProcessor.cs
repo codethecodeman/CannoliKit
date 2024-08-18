@@ -111,6 +111,8 @@ namespace CannoliKit.Processors.Core
                     x.Embeds = null;
                 });
 
+                _db.ChangeTracker.Clear();
+
                 await SaveStateUtility.RemoveStateAsync(_db, job.Route.StateId);
             }
             finally
