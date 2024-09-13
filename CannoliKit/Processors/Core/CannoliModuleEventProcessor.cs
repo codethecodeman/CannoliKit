@@ -87,9 +87,20 @@ namespace CannoliKit.Processors.Core
                 await previousTurn.Task;
             }
 
+            var isRouteStillValid = await _db.CannoliRoutes.AnyAsync(x => x.Id == job.Route.Id);
+
+            if (isRouteStillValid == false)
+            {
+                thisTurn.SetResult(true);
+                _cannoliModuleTurnManager.CleanupTurns();
+                _db.ChangeTracker.Clear();
+                return;
+            }
+
             try
             {
                 await RouteToModuleCallback(job.Route, interaction, user);
+                await _db.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -112,8 +123,8 @@ namespace CannoliKit.Processors.Core
                 });
 
                 _db.ChangeTracker.Clear();
-
                 await SaveStateUtility.RemoveStateAsync(_db, job.Route.StateId);
+                await _db.SaveChangesAsync();
             }
             finally
             {
