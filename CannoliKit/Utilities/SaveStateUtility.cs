@@ -1,6 +1,7 @@
 ﻿using CannoliKit.Converters;
 using CannoliKit.Interfaces;
 using CannoliKit.Models;
+using CannoliKit.Modules.States;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Text.Json;
@@ -43,6 +44,11 @@ namespace CannoliKit.Utilities
                 Encoding.UTF8.GetString(savedState),
                 JsonSerializerOptions
             );
+
+            if (deserializedEntry is CannoliModuleState state)
+            {
+                state.Id = stateId;
+            }
 
             return deserializedEntry;
         }

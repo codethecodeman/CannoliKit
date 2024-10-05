@@ -27,10 +27,11 @@ namespace CannoliKit.Factories
         /// </summary>
         public T CreateModule<T>(
             SocketUser requestingUser,
-            RouteConfiguration? routing = null)
+            RouteConfiguration? routing = null,
+            string? stateId = null)
             where T : CannoliModuleBase
         {
-            return (T)CreateModuleFromType(typeof(T), requestingUser, routing);
+            return (T)CreateModuleFromType(typeof(T), requestingUser, routing, null, stateId);
         }
 
         /// <summary>
@@ -39,26 +40,29 @@ namespace CannoliKit.Factories
         public CannoliModuleBase CreateModule(
             Type type,
             SocketUser requestingUser,
-            RouteConfiguration? routing = null)
+            RouteConfiguration? routing = null,
+            string? stateId = null)
         {
-            return CreateModuleFromType(type, requestingUser, routing);
+            return CreateModuleFromType(type, requestingUser, routing, null, stateId);
         }
 
         internal CannoliModuleBase CreateModule(
             Type type,
             SocketUser requestingUser,
             SocketInteraction interaction,
-            RouteConfiguration? routing = null
+            RouteConfiguration? routing = null,
+            string? stateId = null
            )
         {
-            return CreateModuleFromType(type, requestingUser, routing, interaction);
+            return CreateModuleFromType(type, requestingUser, routing, interaction, stateId);
         }
 
         private CannoliModuleBase CreateModuleFromType(
             Type type,
             SocketUser requestingUser,
             RouteConfiguration? routing = null,
-            SocketInteraction? interaction = null
+            SocketInteraction? interaction = null,
+            string? stateId = null
             )
         {
             var constructor = type.GetConstructors().First();
@@ -71,7 +75,14 @@ namespace CannoliKit.Factories
                 ? configuration
                 : _serviceProvider.GetRequiredService(p.ParameterType)).ToArray();
 
-            return (CannoliModuleBase)Activator.CreateInstance(type, arguments)!;
+            var module = (CannoliModuleBase)Activator.CreateInstance(type, arguments)!;
+
+            if (stateId != null)
+            {
+                module.LoadModuleState(stateId: stateId, useCustomStateId: true).Wait();
+            }
+
+            return module;
         }
     }
 }
