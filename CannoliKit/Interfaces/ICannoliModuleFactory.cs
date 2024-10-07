@@ -16,10 +16,12 @@ namespace CannoliKit.Interfaces
         /// <typeparam name="T">Type that implements <see cref="CannoliModule{TContext,TState}"/>.</typeparam>
         /// <param name="requestingUser">User that initiated the interaction.</param>
         /// <param name="routing">Route configuration, created using <see cref="RouteConfigurationBuilder"/>.</param>
+        /// <param name="stateId">For advanced use cases. Instead of generating a new Cannoli Module State ID, create or load a state using this ID.</param>
         /// <returns>New instance of a Cannoli Module.</returns>
         T CreateModule<T>(
             SocketUser requestingUser,
-            RouteConfiguration? routing = null)
+            RouteConfiguration? routing = null,
+            string? stateId = null)
             where T : CannoliModuleBase;
 
         /// <summary>
@@ -28,10 +30,12 @@ namespace CannoliKit.Interfaces
         /// <param name="type">Type that implements <see cref="CannoliModule{TContext,TState}"/>.</param>
         /// <param name="requestingUser">User that initiated the interaction.</param>
         /// <param name="routing">Route configuration, created using <see cref="RouteConfigurationBuilder"/>.</param>
+        /// <param name="stateId">For advanced use cases. Instead of generating a new Cannoli Module State ID, create or load a state using this ID.</param>
         /// <returns>New instance of a Cannoli Module.</returns>
         CannoliModuleBase CreateModule(
             Type type,
             SocketUser requestingUser,
-            RouteConfiguration? routing = null);
+            RouteConfiguration? routing = null,
+            string? stateId = null);
     }
 }

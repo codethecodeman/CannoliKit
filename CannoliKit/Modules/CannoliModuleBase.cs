@@ -15,6 +15,7 @@ namespace CannoliKit.Modules
         /// </summary>
         public abstract Task<CannoliModuleComponents> BuildComponentsAsync();
         internal abstract Task LoadModuleState(CannoliRoute route);
+        internal abstract Task LoadModuleState(string stateId, bool useCustomStateId = false);
         internal abstract Task SaveModuleState();
     }
 }

@@ -13,7 +13,7 @@ namespace CannoliKit.Modules.States
         /// <summary>
         /// State ID.
         /// </summary>
-        public string Id { get; init; } = Guid.NewGuid().ToString();
+        public string Id { get; internal set; } = Guid.NewGuid().ToString();
 
         /// <summary>
         /// UTC datetime of state expiration. Default is +12 hours.

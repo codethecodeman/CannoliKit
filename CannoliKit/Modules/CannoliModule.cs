@@ -230,12 +230,33 @@ namespace CannoliKit.Modules
                 await SaveStateUtility.RemoveStateAsync(Db, route.StateIdToBeDeleted);
             }
 
-            var state = await SaveStateUtility.GetState<TState>(
-                Db,
-                route.StateId) ?? throw new ModuleStateNotFoundException(
-                    $"Unable to find Cannoli Module State with ID {route.StateId}.");
+            await LoadModuleState(route.StateId);
+        }
 
-            state.Db = Db;
+        internal override async Task LoadModuleState(string stateId, bool useCustomStateId = false)
+        {
+            TState? state = null;
+
+            try
+            {
+                state = await SaveStateUtility.GetState<TState>(Db, stateId);
+            }
+            catch (Exception)
+            {
+                if (useCustomStateId == false) throw;
+            }
+
+            switch (state)
+            {
+                case null when useCustomStateId == false:
+                    throw new ModuleStateNotFoundException(
+                        $"Unable to find Cannoli Module State with ID {stateId}.");
+                case null when useCustomStateId:
+                    State.Id = stateId;
+                    return;
+            }
+
+            state!.Db = Db;
 
             State = state;
             Cancellation.State = state;
