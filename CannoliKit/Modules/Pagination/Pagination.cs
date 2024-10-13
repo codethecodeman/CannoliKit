@@ -45,6 +45,7 @@ namespace CannoliKit.Modules.Pagination
         /// <param name="numItemsPerField">Number of items to display per Discord embed field. Default value is 10.</param>
         /// <param name="resetListCounterBetweenPages">If list type is numbered, indicates if numbering should reset to 1 on each page.</param>
         /// <param name="paginationId">If specified, the current page number will be saved to the module state using this ID. Otherwise, a default ID is used.</param>
+        /// <param name="pageNumberOverride">If specified, overrides the saved page number.</param>
         /// <returns></returns>
         public PaginationResult<T> Setup<T>(
             IEnumerable<T> items,
@@ -54,7 +55,8 @@ namespace CannoliKit.Modules.Pagination
             int numItemsPerPage = 10,
             int numItemsPerField = 10,
             bool resetListCounterBetweenPages = false,
-            string? paginationId = null
+            string? paginationId = null,
+            int? pageNumberOverride = null
         )
         {
             if (IsEnabled)
@@ -70,6 +72,12 @@ namespace CannoliKit.Modules.Pagination
             {
                 currentPageNumber = 0;
                 State.PageNumbers[paginationId] = currentPageNumber;
+            }
+
+            if (pageNumberOverride != null)
+            {
+                currentPageNumber = pageNumberOverride.Value;
+                State.PageNumbers[paginationId] = pageNumberOverride.Value;
             }
 
             var result = new PaginationResult<T>(
