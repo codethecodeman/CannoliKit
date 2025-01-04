@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net9.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Version>1.6.0</Version>
+		<Version>2.0.0</Version>
 		<Title>CannoliKit</Title>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<RepositoryUrl>https://github.com/codethecodeman/CannoliKit</RepositoryUrl>
@@ -22,9 +22,9 @@
 
 
 	<ItemGroup>
-		<PackageReference Include="Discord.Net" Version="3.16.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="8.0.8" />
+		<PackageReference Include="Discord.Net" Version="3.17.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.0" />
 	</ItemGroup>
 
 
