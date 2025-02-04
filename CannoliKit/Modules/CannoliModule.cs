@@ -72,6 +72,7 @@ namespace CannoliKit.Modules
 
         private const string NextPageRouteName = "CannoliKit.NextPageRoute";
         private const string PreviousPageRouteName = "CannoliKit.PreviousPageRoute";
+        private const string SelectPageRouteName = "CannoliKit.SelectPageRoute";
         private const string DefaultCancelRouteName = "CannoliKit.DefaultCancelRoute";
 
         /// <summary>
@@ -131,7 +132,7 @@ namespace CannoliKit.Modules
             var componentBuilder = renderParts.ComponentBuilder
                 ?? new ComponentBuilder();
 
-            await AddPaginationButtons(componentBuilder);
+            await AddPaginationComponents(componentBuilder);
 
             await AddCancellationButton(componentBuilder);
 
@@ -271,7 +272,15 @@ namespace CannoliKit.Modules
             var offset = int.Parse(route.Parameter1!);
             var id = route.Parameter2!;
 
-            State.PageNumbers[id] += offset;
+            if (offset == 0)
+            {
+                var selectedPageNumber = int.Parse(messageComponent.Data.Values.First());
+                State.PageNumbers[id] = selectedPageNumber;
+            }
+            else
+            {
+                State.PageNumbers[id] += offset;
+            }
 
             await RefreshModuleAsync(AllowedMentions.None);
         }
@@ -282,33 +291,55 @@ namespace CannoliKit.Modules
             await messageComponent.DeleteOriginalResponseAsync();
         }
 
-        private async Task AddPaginationButtons(ComponentBuilder componentBuilder)
+        private async Task AddPaginationComponents(ComponentBuilder componentBuilder)
         {
             if (Pagination.IsEnabled == false || Pagination.NumPages <= 1) return;
 
             var rowBuilder = new ActionRowBuilder();
 
-            rowBuilder.WithButton(new ButtonBuilder()
+            if (Pagination.NumPages <= 5 || Pagination.PageNumber > 25)
             {
-                CustomId = await RouteManager.CreateMessageComponentRouteAsync(
-                    callback: OnModulePageChanged,
-                    routeName: PreviousPageRouteName,
-                    parameter1: "-1",
-                    parameter2: Pagination.PaginationId),
-                Emote = Pagination.PreviousArrowEmoji,
-                Style = ButtonStyle.Secondary,
-            });
+                rowBuilder.WithButton(new ButtonBuilder()
+                {
+                    CustomId = await RouteManager.CreateMessageComponentRouteAsync(
+                        callback: OnModulePageChanged,
+                        routeName: PreviousPageRouteName,
+                        parameter1: "-1",
+                        parameter2: Pagination.PaginationId),
+                    Emote = Pagination.PreviousArrowEmoji,
+                    Style = ButtonStyle.Secondary,
+                });
 
-            rowBuilder.WithButton(new ButtonBuilder()
+                rowBuilder.WithButton(new ButtonBuilder()
+                {
+                    CustomId = await RouteManager.CreateMessageComponentRouteAsync(
+                        callback: OnModulePageChanged,
+                        routeName: NextPageRouteName,
+                        parameter1: "1",
+                        parameter2: Pagination.PaginationId),
+                    Emote = Pagination.NextArrowEmoji,
+                    Style = ButtonStyle.Secondary,
+                });
+            }
+            else
             {
-                CustomId = await RouteManager.CreateMessageComponentRouteAsync(
-                    callback: OnModulePageChanged,
-                    routeName: NextPageRouteName,
-                    parameter1: "1",
-                    parameter2: Pagination.PaginationId),
-                Emote = Pagination.NextArrowEmoji,
-                Style = ButtonStyle.Secondary,
-            });
+                rowBuilder.WithSelectMenu(new SelectMenuBuilder()
+                {
+                    CustomId = await RouteManager.CreateMessageComponentRouteAsync(
+                        callback: OnModulePageChanged,
+                        routeName: SelectPageRouteName,
+                        parameter1: "0",
+                        parameter2: Pagination.PaginationId),
+                    Options = Enumerable.Range(0, Pagination.NumPages)
+                        .Select(x => new SelectMenuOptionBuilder
+                        {
+                            Label = $"Page {x + 1}",
+                            Value = x.ToString(),
+                            IsDefault = Pagination.PageNumber == x
+                        })
+                        .ToList()
+                });
+            }
 
             componentBuilder.ActionRows ??= [];
             componentBuilder.ActionRows.Insert(0, rowBuilder);

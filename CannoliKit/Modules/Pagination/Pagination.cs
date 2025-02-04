@@ -9,9 +9,8 @@ namespace CannoliKit.Modules.Pagination
     public sealed class Pagination
     {
         internal bool IsEnabled { get; private set; }
-
         internal int NumPages { get; set; }
-
+        internal int PageNumber { get; set; }
         internal string? PaginationId { get; set; }
 
         internal CannoliModuleState State { get; set; }
@@ -92,6 +91,7 @@ namespace CannoliKit.Modules.Pagination
 
             State.PageNumbers[paginationId] = result.PageNumber;
             NumPages = result.NumPages;
+            PageNumber = result.PageNumber;
             PaginationId = paginationId;
 
             return result;
