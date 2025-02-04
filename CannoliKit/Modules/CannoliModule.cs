@@ -68,8 +68,11 @@ namespace CannoliKit.Modules
 
         private readonly SocketInteraction? _interaction;
 
+        private ActionRowBuilder? _pageButtonsActionRowBuilder, _pageSelectActionRowBuilder;
+
         private bool _isBuilt;
 
+        private const int PageNumberControlBreakpoint = 5;
         private const string NextPageRouteName = "CannoliKit.NextPageRoute";
         private const string PreviousPageRouteName = "CannoliKit.PreviousPageRoute";
         private const string SelectPageRouteName = "CannoliKit.SelectPageRoute";
@@ -168,6 +171,19 @@ namespace CannoliKit.Modules
             if (string.IsNullOrWhiteSpace(content))
             {
                 content = null;
+            }
+
+            if (componentBuilder.ActionRows?.Count > 5 && _pageButtonsActionRowBuilder != null)
+            {
+                if (Pagination.NumPages > PageNumberControlBreakpoint)
+                {
+                    componentBuilder.ActionRows.Remove(_pageButtonsActionRowBuilder);
+                }
+                else if (_pageSelectActionRowBuilder != null)
+                {
+                    // This case should ideally not be met.
+                    componentBuilder.ActionRows.Remove(_pageSelectActionRowBuilder);
+                }
             }
 
             if (componentBuilder.ActionRows == null || componentBuilder.ActionRows.Count == 0)
@@ -295,9 +311,9 @@ namespace CannoliKit.Modules
         {
             if (Pagination.IsEnabled == false || Pagination.NumPages <= 1) return;
 
-            var rowBuilder = new ActionRowBuilder();
+            _pageButtonsActionRowBuilder = new ActionRowBuilder();
 
-            rowBuilder.WithButton(new ButtonBuilder()
+            _pageButtonsActionRowBuilder.WithButton(new ButtonBuilder()
             {
                 CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                     callback: OnModulePageChanged,
@@ -308,7 +324,7 @@ namespace CannoliKit.Modules
                 Style = ButtonStyle.Secondary,
             });
 
-            rowBuilder.WithButton(new ButtonBuilder()
+            _pageButtonsActionRowBuilder.WithButton(new ButtonBuilder()
             {
                 CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                     callback: OnModulePageChanged,
@@ -320,12 +336,10 @@ namespace CannoliKit.Modules
             });
 
             componentBuilder.ActionRows ??= [];
-            componentBuilder.ActionRows.Insert(0, rowBuilder);
+            componentBuilder.ActionRows.Insert(0, _pageButtonsActionRowBuilder);
 
-            if (componentBuilder.ActionRows.Count <= 4 && Pagination.NumPages > 5)
+            if (componentBuilder.ActionRows.Count <= 4 && Pagination.NumPages > PageNumberControlBreakpoint)
             {
-                rowBuilder = new ActionRowBuilder();
-
                 var totalPages = Pagination.NumPages;
                 var currentPage = Pagination.PageNumber;
                 var maxItems = 25;
@@ -345,9 +359,10 @@ namespace CannoliKit.Modules
                 }
 
                 // Number of items in the select menu.
-                int count = endIndex - startIndex + 1;
+                var count = endIndex - startIndex + 1;
 
-                rowBuilder.WithSelectMenu(new SelectMenuBuilder()
+                _pageSelectActionRowBuilder = new ActionRowBuilder();
+                _pageSelectActionRowBuilder.WithSelectMenu(new SelectMenuBuilder()
                 {
                     CustomId = await RouteManager.CreateMessageComponentRouteAsync(
                         callback: OnModulePageChanged,
@@ -364,7 +379,7 @@ namespace CannoliKit.Modules
                         .ToList()
                 });
 
-                componentBuilder.ActionRows.Insert(1, rowBuilder);
+                componentBuilder.ActionRows.Insert(1, _pageSelectActionRowBuilder);
             }
         }
 
