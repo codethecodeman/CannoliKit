@@ -297,32 +297,56 @@ namespace CannoliKit.Modules
 
             var rowBuilder = new ActionRowBuilder();
 
-            if (Pagination.NumPages <= 5 || Pagination.PageNumber > 25)
+            rowBuilder.WithButton(new ButtonBuilder()
             {
-                rowBuilder.WithButton(new ButtonBuilder()
-                {
-                    CustomId = await RouteManager.CreateMessageComponentRouteAsync(
-                        callback: OnModulePageChanged,
-                        routeName: PreviousPageRouteName,
-                        parameter1: "-1",
-                        parameter2: Pagination.PaginationId),
-                    Emote = Pagination.PreviousArrowEmoji,
-                    Style = ButtonStyle.Secondary,
-                });
+                CustomId = await RouteManager.CreateMessageComponentRouteAsync(
+                    callback: OnModulePageChanged,
+                    routeName: PreviousPageRouteName,
+                    parameter1: "-1",
+                    parameter2: Pagination.PaginationId),
+                Emote = Pagination.PreviousArrowEmoji,
+                Style = ButtonStyle.Secondary,
+            });
 
-                rowBuilder.WithButton(new ButtonBuilder()
-                {
-                    CustomId = await RouteManager.CreateMessageComponentRouteAsync(
-                        callback: OnModulePageChanged,
-                        routeName: NextPageRouteName,
-                        parameter1: "1",
-                        parameter2: Pagination.PaginationId),
-                    Emote = Pagination.NextArrowEmoji,
-                    Style = ButtonStyle.Secondary,
-                });
-            }
-            else
+            rowBuilder.WithButton(new ButtonBuilder()
             {
+                CustomId = await RouteManager.CreateMessageComponentRouteAsync(
+                    callback: OnModulePageChanged,
+                    routeName: NextPageRouteName,
+                    parameter1: "1",
+                    parameter2: Pagination.PaginationId),
+                Emote = Pagination.NextArrowEmoji,
+                Style = ButtonStyle.Secondary,
+            });
+
+            componentBuilder.ActionRows ??= [];
+            componentBuilder.ActionRows.Insert(0, rowBuilder);
+
+            if (componentBuilder.ActionRows.Count <= 4 && Pagination.NumPages > 5)
+            {
+                rowBuilder = new ActionRowBuilder();
+
+                var totalPages = Pagination.NumPages;
+                var currentPage = Pagination.PageNumber;
+                var maxItems = 25;
+                var halfWindow = maxItems / 2;
+
+                // Calculate the starting index so that the current page is centered.
+                var startIndex = currentPage - halfWindow;
+                if (startIndex < 0) startIndex = 0;
+
+                // Calculate the ending index.
+                var endIndex = startIndex + maxItems - 1;
+                if (endIndex >= totalPages)
+                {
+                    endIndex = totalPages - 1;
+                    // If we hit the end, readjust the start index.
+                    startIndex = Math.Max(0, endIndex - maxItems + 1);
+                }
+
+                // Number of items in the select menu.
+                int count = endIndex - startIndex + 1;
+
                 rowBuilder.WithSelectMenu(new SelectMenuBuilder()
                 {
                     CustomId = await RouteManager.CreateMessageComponentRouteAsync(
@@ -330,7 +354,7 @@ namespace CannoliKit.Modules
                         routeName: SelectPageRouteName,
                         parameter1: "0",
                         parameter2: Pagination.PaginationId),
-                    Options = Enumerable.Range(0, Pagination.NumPages)
+                    Options = Enumerable.Range(startIndex, count)
                         .Select(x => new SelectMenuOptionBuilder
                         {
                             Label = $"Page {x + 1}",
@@ -339,10 +363,9 @@ namespace CannoliKit.Modules
                         })
                         .ToList()
                 });
-            }
 
-            componentBuilder.ActionRows ??= [];
-            componentBuilder.ActionRows.Insert(0, rowBuilder);
+                componentBuilder.ActionRows.Insert(1, rowBuilder);
+            }
         }
 
         private async Task AddCancellationButton(ComponentBuilder componentBuilder)
