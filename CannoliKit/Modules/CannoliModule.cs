@@ -338,7 +338,7 @@ namespace CannoliKit.Modules
             componentBuilder.ActionRows ??= [];
             componentBuilder.ActionRows.Insert(0, _pageButtonsActionRowBuilder);
 
-            if (componentBuilder.ActionRows.Count <= 4 && Pagination.NumPages > PageNumberControlBreakpoint)
+            if (Pagination.NumPages > PageNumberControlBreakpoint)
             {
                 var totalPages = Pagination.NumPages;
                 var currentPage = Pagination.PageNumber;
