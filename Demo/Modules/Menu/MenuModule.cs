@@ -49,7 +49,7 @@ namespace Demo.Modules.Menu
 
             var componentBuilder = new ComponentBuilder();
             var row1 = new ActionRowBuilder();
-            row1.AddComponent(menuBuilder.Build());
+            row1.AddComponent(menuBuilder);
             componentBuilder.AddRow(row1);
 
             Alerts.SetInfoMessage(

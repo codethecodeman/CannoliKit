@@ -417,7 +417,7 @@ namespace CannoliKit.Modules
                     CustomId = cancellationRoute,
                     Label = Cancellation.ButtonLabel,
                     Style = ButtonStyle.Secondary,
-                }.Build());
+                });
         }
 
         private async Task LoadReturnRoutes()

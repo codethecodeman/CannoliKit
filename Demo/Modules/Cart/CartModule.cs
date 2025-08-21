@@ -133,7 +133,7 @@ namespace Demo.Modules.Cart
 
             foreach (var button in buttons)
             {
-                buttonRow.AddComponent(button.Build());
+                buttonRow.AddComponent(button);
             }
 
             componentBuilder.AddRow(buttonRow);
