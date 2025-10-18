@@ -393,7 +393,7 @@ namespace CannoliKit.Modules
 
             var rowBuilder = new ActionRowBuilder();
 
-            if (lastRowBuilder != null && lastRowBuilder.Components.Count == 1 && lastRowBuilder.Components[0] is ButtonComponent)
+            if (lastRowBuilder != null && lastRowBuilder.Components.Count == 1 && lastRowBuilder.Components[0] is ButtonBuilder)
             {
                 rowBuilder = lastRowBuilder;
             }
