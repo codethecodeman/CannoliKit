@@ -23,8 +23,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="Discord.Net" Version="3.18.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.10" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.12" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="9.0.12" />
 	</ItemGroup>
 
 
